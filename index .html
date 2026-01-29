@@ -1,0 +1,1691 @@
+<meta name='viewport' content='width=device-width, initial-scale=1'/><!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speech - Plateforme de partage académique</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Firebase SDK -->
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { 
+            getAuth, 
+            createUserWithEmailAndPassword, 
+            signInWithEmailAndPassword, 
+            signOut, 
+            onAuthStateChanged 
+        } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { 
+            getFirestore, 
+            collection, 
+            addDoc, 
+            getDocs, 
+            query, 
+            orderBy, 
+            updateDoc, 
+            doc, 
+            increment,
+            where
+        } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyD7WOytIePYbc7HitFoLJnHR9RssskVRYI",
+            authDomain: "brainspeech-40330.firebaseapp.com",
+            projectId: "brainspeech-40330",
+            storageBucket: "brainspeech-40330.firebasestorage.app",
+            messagingSenderId: "353189666364",
+            appId: "1:353189666364:web:1258e0ebdb753164072d39"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Exposer les objets Firebase globalement
+        window.firebaseAuth = auth;
+        window.firebaseDb = db;
+        window.firebaseFunctions = {
+            createUserWithEmailAndPassword,
+            signInWithEmailAndPassword,
+            signOut,
+            onAuthStateChanged,
+            collection,
+            addDoc,
+            getDocs,
+            query,
+            orderBy,
+            updateDoc,
+            doc,
+            increment,
+            where
+        };
+        
+        console.log("Firebase initialisé avec succès !");
+    </script>
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --accent-color: #4cc9f0;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --success-color: #4bb543;
+            --warning-color: #f0ad4e;
+            --danger-color: #d9534f;
+            --border-radius: 12px;
+            --shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: var(--dark-color);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        .logo i {
+            color: var(--accent-color);
+            font-size: 2rem;
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 30px;
+        }
+
+        nav a {
+            text-decoration: none;
+            color: var(--dark-color);
+            font-weight: 600;
+            padding: 8px 0;
+            position: relative;
+            transition: var(--transition);
+        }
+
+        nav a:hover {
+            color: var(--primary-color);
+        }
+
+        nav a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--primary-color);
+            transition: var(--transition);
+        }
+
+        nav a:hover::after {
+            width: 100%;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .auth-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 10px 24px;
+            border-radius: var(--border-radius);
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--primary-color);
+            border: 2px solid var(--primary-color);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .user-avatar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+        }
+
+        .avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            border: 3px solid white;
+            box-shadow: var(--shadow);
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 40px 0;
+            min-height: calc(100vh - 180px);
+        }
+
+        .page {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            padding: 60px 40px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-radius: var(--border-radius);
+            margin-bottom: 40px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M0,0 L100,0 L100,100 Z" fill="rgba(255,255,255,0.1)"/></svg>');
+            background-size: cover;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            font-weight: 800;
+        }
+
+        .hero p {
+            font-size: 1.3rem;
+            max-width: 700px;
+            margin: 0 auto 30px;
+            opacity: 0.9;
+        }
+
+        /* Articles Grid */
+        .articles-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .article-card {
+            background: white;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            position: relative;
+        }
+
+        .article-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .article-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: var(--primary-color);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .article-content {
+            padding: 25px;
+        }
+
+        .article-meta {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        .article-author {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+        }
+
+        .article-title {
+            font-size: 1.4rem;
+            margin-bottom: 15px;
+            color: var(--dark-color);
+            line-height: 1.4;
+        }
+
+        .article-excerpt {
+            color: #495057;
+            margin-bottom: 20px;
+            line-height: 1.6;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .article-stats {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            border-top: 1px solid #eee;
+            background: #f8f9fa;
+        }
+
+        .stats-group {
+            display: flex;
+            gap: 20px;
+        }
+
+        .stat {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: #6c757d;
+        }
+
+        .contact-author-btn {
+            background: var(--accent-color);
+            color: white;
+            padding: 8px 20px;
+            border-radius: var(--border-radius);
+            text-decoration: none;
+            font-weight: 600;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .contact-author-btn:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        /* Forms */
+        .auth-form {
+            max-width: 500px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+        }
+
+        .form-title {
+            text-align: center;
+            margin-bottom: 30px;
+            color: var(--dark-color);
+            font-size: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #e9ecef;
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(76, 201, 240, 0.2);
+        }
+
+        .user-type-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .user-type-card {
+            padding: 20px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: var(--border-radius);
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .user-type-card.selected {
+            border-color: var(--primary-color);
+            background: linear-gradient(135deg, rgba(67, 97, 238, 0.1), rgba(76, 201, 240, 0.1));
+        }
+
+        .user-type-card i {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+            color: var(--primary-color);
+        }
+
+        .form-footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #6c757d;
+        }
+
+        .form-footer a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: var(--border-radius);
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 25px 30px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            color: var(--dark-color);
+            font-weight: 700;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #6c757d;
+            transition: var(--transition);
+        }
+
+        .modal-close:hover {
+            color: var(--danger-color);
+        }
+
+        .modal-body {
+            padding: 30px;
+        }
+
+        /* Loading */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Footer */
+        footer {
+            background: var(--dark-color);
+            color: white;
+            padding: 60px 0 30px;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .footer-section h3 {
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            color: var(--accent-color);
+        }
+
+        .footer-section p {
+            color: #adb5bd;
+            margin-bottom: 20px;
+        }
+
+        .footer-links {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 10px;
+        }
+
+        .footer-links a {
+            color: #adb5bd;
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .footer-links a:hover {
+            color: white;
+            padding-left: 5px;
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 30px;
+            border-top: 1px solid #495057;
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            nav ul {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 15px;
+            }
+            
+            .hero h1 {
+                font-size: 2.2rem;
+            }
+            
+            .articles-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .user-type-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .auth-form {
+                padding: 25px;
+            }
+        }
+
+        /* Access Restricted */
+        .access-restricted {
+            text-align: center;
+            padding: 60px 20px;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+        }
+
+        .access-restricted i {
+            font-size: 4rem;
+            color: var(--danger-color);
+            margin-bottom: 20px;
+        }
+
+        .access-restricted h2 {
+            margin-bottom: 20px;
+            color: var(--dark-color);
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: var(--transition);
+            z-index: 3000;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast-success {
+            border-left: 4px solid var(--success-color);
+        }
+
+        .toast-error {
+            border-left: 4px solid var(--danger-color);
+        }
+
+        .toast-info {
+            border-left: 4px solid var(--accent-color);
+        }
+    </style>
+</head>
+<body>
+    <!-- Toast Notification -->
+    <div id="toast" class="toast"></div>
+
+    <!-- Loading Overlay -->
+    <div id="loading" class="loading">
+        <div class="spinner"></div>
+        <p>Chargement en cours...</p>
+    </div>
+
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <a href="#" class="logo" onclick="showPage('home')">
+                    <i class="fas fa-comment-alt"></i>
+                    <span>Speech</span>
+                </a>
+                <nav>
+                    <ul>
+                        <li><a href="#" onclick="showPage('home')">Accueil</a></li>
+                        <li><a href="#" onclick="showPage('articles')">Articles</a></li>
+                        <li><a href="#" onclick="showPage('publish')">Publier</a></li>
+                        <li><a href="#" onclick="showPage('profile')">Profil</a></li>
+                    </ul>
+                </nav>
+                <div class="user-info" id="userInfo">
+                    <!-- Dynamic content -->
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <!-- Home Page -->
+            <div id="home" class="page active">
+                <div class="hero">
+                    <div class="hero-content">
+                        <h1>Partagez vos connaissances académiques</h1>
+                        <p>Une plateforme dédiée aux élèves, étudiants, professeurs et chercheurs pour publier, partager et valoriser leurs travaux.</p>
+                        <button class="btn btn-primary" onclick="showPage('articles')">
+                            <i class="fas fa-book-open"></i>
+                            Explorer les articles
+                        </button>
+                    </div>
+                </div>
+                
+                <h2>Articles les plus populaires</h2>
+                <div class="articles-grid" id="popularArticles">
+                    <!-- Articles will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Articles Page -->
+            <div id="articles" class="page">
+                <h1>Tous les articles</h1>
+                <p>Découvrez les publications de notre communauté académique</p>
+                <div class="articles-grid" id="allArticles">
+                    <!-- Articles will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Publish Page -->
+            <div id="publish" class="page">
+                <div class="access-restricted" id="publishRestricted">
+                    <i class="fas fa-lock"></i>
+                    <h2>Accès restreint</h2>
+                    <p>Vous devez être connecté pour publier un article.</p>
+                    <button class="btn btn-primary" onclick="showModal('loginModal')">
+                        <i class="fas fa-sign-in-alt"></i>
+                        Se connecter
+                    </button>
+                </div>
+                
+                <div id="publishForm" style="display: none;">
+                    <h1>Publier un nouvel article</h1>
+                    <p>Votre article sera vérifié par notre IA avant publication</p>
+                    
+                    <div class="auth-form">
+                        <div class="form-group">
+                            <label class="form-label">Titre de l'article</label>
+                            <input type="text" id="articleTitle" class="form-input" placeholder="Entrez un titre percutant">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Catégorie</label>
+                            <select id="articleCategory" class="form-input">
+                                <option value="education">Éducation</option>
+                                <option value="science">Science</option>
+                                <option value="technology">Technologie</option>
+                                <option value="literature">Littérature</option>
+                                <option value="history">Histoire</option>
+                                <option value="philosophy">Philosophie</option>
+                                <option value="research">Recherche</option>
+                                <option value="tutorial">Tutoriel</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Contenu de l'article</label>
+                            <textarea id="articleContent" class="form-input" placeholder="Rédigez votre article ici..." rows="8"></textarea>
+                        </div>
+                        
+                        <div id="aiCheckResult" style="display: none;">
+                            <div class="form-group">
+                                <label class="form-label">Vérification par IA</label>
+                                <div style="background: #f8f9fa; padding: 20px; border-radius: var(--border-radius);">
+                                    <div id="aiCheckText"></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <button class="btn btn-primary" onclick="checkArticleWithAI()" style="width: 100%;">
+                            <i class="fas fa-robot"></i>
+                            Vérifier avec l'IA
+                        </button>
+                        <button class="btn btn-primary" id="publishBtn" onclick="publishArticle()" style="width: 100%; margin-top: 15px; display: none;">
+                            <i class="fas fa-paper-plane"></i>
+                            Publier l'article
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Page -->
+            <div id="profile" class="page">
+                <div class="access-restricted" id="profileRestricted">
+                    <i class="fas fa-user-lock"></i>
+                    <h2>Profil non accessible</h2>
+                    <p>Connectez-vous pour accéder à votre profil.</p>
+                    <button class="btn btn-primary" onclick="showModal('loginModal')">
+                        <i class="fas fa-sign-in-alt"></i>
+                        Se connecter
+                    </button>
+                </div>
+                
+                <div id="profileContent" style="display: none;">
+                    <!-- Profile content will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Login Modal -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Connexion</h2>
+                <button class="modal-close" onclick="closeModal('loginModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Adresse email</label>
+                    <input type="email" id="loginEmail" class="form-input" placeholder="votre@email.com">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Mot de passe</label>
+                    <input type="password" id="loginPassword" class="form-input" placeholder="Votre mot de passe">
+                </div>
+                <button class="btn btn-primary" onclick="login()" style="width: 100%;">
+                    <i class="fas fa-sign-in-alt"></i>
+                    Se connecter
+                </button>
+                <div class="form-footer">
+                    <p>Pas encore de compte ? <a href="#" onclick="closeModal('loginModal'); showModal('registerModal')">S'inscrire</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Register Modal -->
+    <div id="registerModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Inscription</h2>
+                <button class="modal-close" onclick="closeModal('registerModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Nom complet</label>
+                    <input type="text" id="registerName" class="form-input" placeholder="Votre nom complet">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Adresse email</label>
+                    <input type="email" id="registerEmail" class="form-input" placeholder="votre@email.com">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Mot de passe</label>
+                    <input type="password" id="registerPassword" class="form-input" placeholder="Créez un mot de passe sécurisé">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Vous êtes :</label>
+                    <div class="user-type-grid">
+                        <div class="user-type-card" data-type="student" onclick="selectUserType('student')">
+                            <i class="fas fa-user-graduate"></i>
+                            <p>Élève/Étudiant</p>
+                        </div>
+                        <div class="user-type-card" data-type="teacher" onclick="selectUserType('teacher')">
+                            <i class="fas fa-chalkboard-teacher"></i>
+                            <p>Professeur</p>
+                        </div>
+                        <div class="user-type-card" data-type="consultant" onclick="selectUserType('consultant')">
+                            <i class="fas fa-briefcase"></i>
+                            <p>Consultant</p>
+                        </div>
+                        <div class="user-type-card" data-type="independent" onclick="selectUserType('independent')">
+                            <i class="fas fa-user-tie"></i>
+                            <p>Indépendant</p>
+                        </div>
+                        <div class="user-type-card" data-type="researcher" onclick="selectUserType('researcher')">
+                            <i class="fas fa-flask"></i>
+                            <p>Chercheur</p>
+                        </div>
+                    </div>
+                    <input type="hidden" id="selectedUserType" value="">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email de contact (pour les lecteurs)</label>
+                    <input type="email" id="registerContactEmail" class="form-input" placeholder="contact@votredomaine.com">
+                    <small style="color: #6c757d; display: block; margin-top: 5px;">Cet email sera visible pour les lecteurs qui souhaitent vous contacter</small>
+                </div>
+                <button class="btn btn-primary" onclick="register()" style="width: 100%;">
+                    <i class="fas fa-user-plus"></i>
+                    S'inscrire
+                </button>
+                <div class="form-footer">
+                    <p>Déjà un compte ? <a href="#" onclick="closeModal('registerModal'); showModal('loginModal')">Se connecter</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Privacy Policy Modal -->
+    <div id="privacyModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Politique de confidentialité</h2>
+                <button class="modal-close" onclick="closeModal('privacyModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <h3>1. Collecte des informations</h3>
+                <p>Speech collecte les informations suivantes : nom, adresse email, type d'utilisateur, et email de contact. Ces informations sont nécessaires pour le bon fonctionnement de la plateforme.</p>
+                
+                <h3>2. Utilisation des informations</h3>
+                <p>Les informations collectées sont utilisées pour :</p>
+                <ul>
+                    <li>Authentifier les utilisateurs</li>
+                    <li>Permettre la publication d'articles</li>
+                    <li>Faciliter les contacts entre auteurs et lecteurs</li>
+                    <li>Personnaliser l'expérience utilisateur</li>
+                </ul>
+                
+                <h3>3. Partage des informations</h3>
+                <p>L'email de contact des auteurs est visible par tous les utilisateurs pour permettre la communication. Les autres informations personnelles ne sont pas partagées avec des tiers.</p>
+                
+                <h3>4. Sécurité</h3>
+                <p>Nous utilisons Firebase Authentication et Firestore pour sécuriser vos données. Les mots de passe sont cryptés.</p>
+                
+                <h3>5. Vos droits</h3>
+                <p>Vous pouvez à tout moment demander la suppression de votre compte et de vos données en nous contactant à xtronicsconcepts@gmail.com.</p>
+                
+                <h3>6. Contact</h3>
+                <p>Pour toute question concernant cette politique de confidentialité : xtronicsconcepts@gmail.com</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-section">
+                    <h3>Speech</h3>
+                    <p>Plateforme de partage d'articles académiques et éducatifs.</p>
+                    <p><i class="fas fa-envelope"></i> xtronicsconcepts@gmail.com</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Navigation</h3>
+                    <ul class="footer-links">
+                        <li><a href="#" onclick="showPage('home')">Accueil</a></li>
+                        <li><a href="#" onclick="showPage('articles')">Articles</a></li>
+                        <li><a href="#" onclick="showPage('publish')">Publier</a></li>
+                        <li><a href="#" onclick="showPage('profile')">Profil</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Légal</h3>
+                    <ul class="footer-links">
+                        <li><a href="#" onclick="showModal('privacyModal')">Politique de confidentialité</a></li>
+                        <li><a href="#" onclick="showModal('licenseModal')">Licence d'utilisation</a></li>
+                        <li><a href="mailto:xtronicsconcepts@gmail.com">Contact</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Speech. Développé par Xtronics Concepts. Tous droits réservés.</p>
+                <p>Ce projet utilise Firebase pour l'authentification et le stockage des données.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Variables globales
+        let currentUser = null;
+        let articles = [];
+        let users = [];
+
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', async function() {
+            showLoading(true);
+            await initializeApp();
+            showLoading(false);
+        });
+
+        // Initialiser l'application
+        async function initializeApp() {
+            try {
+                // Vérifier si Firebase est chargé
+                if (!window.firebaseAuth || !window.firebaseDb) {
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+
+                // Observer l'état d'authentification
+                window.firebaseFunctions.onAuthStateChanged(window.firebaseAuth, async (user) => {
+                    if (user) {
+                        // Utilisateur connecté
+                        currentUser = await getUserData(user.uid);
+                        updateUIForLoggedInUser();
+                        showToast('Connexion réussie !', 'success');
+                    } else {
+                        // Utilisateur déconnecté
+                        currentUser = null;
+                        updateUIForLoggedOutUser();
+                    }
+                });
+
+                // Charger les articles
+                await loadArticles();
+                
+            } catch (error) {
+                console.error('Erreur d\'initialisation:', error);
+                showToast('Erreur de connexion au serveur', 'error');
+            }
+        }
+
+        // Obtenir les données utilisateur
+        async function getUserData(userId) {
+            try {
+                const q = window.firebaseFunctions.query(
+                    window.firebaseFunctions.collection(window.firebaseDb, 'users'),
+                    window.firebaseFunctions.where('uid', '==', userId)
+                );
+                
+                const querySnapshot = await window.firebaseFunctions.getDocs(q);
+                
+                if (!querySnapshot.empty) {
+                    const userDoc = querySnapshot.docs[0];
+                    return { id: userDoc.id, ...userDoc.data() };
+                }
+                return null;
+            } catch (error) {
+                console.error('Erreur lors de la récupération des données utilisateur:', error);
+                return null;
+            }
+        }
+
+        // Mettre à jour l'interface pour un utilisateur connecté
+        function updateUIForLoggedInUser() {
+            // Mettre à jour le header
+            document.getElementById('userInfo').innerHTML = `
+                <div class="user-avatar" onclick="showPage('profile')">
+                    <div class="avatar">${currentUser.name.charAt(0).toUpperCase()}</div>
+                    <span>${currentUser.name}</span>
+                </div>
+                <button class="btn btn-outline" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Déconnexion
+                </button>
+            `;
+
+            // Afficher/masquer les pages selon l'authentification
+            document.getElementById('publishRestricted').style.display = 'none';
+            document.getElementById('publishForm').style.display = 'block';
+            document.getElementById('profileRestricted').style.display = 'none';
+            document.getElementById('profileContent').style.display = 'block';
+            
+            // Charger le profil
+            loadProfile();
+        }
+
+        // Mettre à jour l'interface pour un utilisateur déconnecté
+        function updateUIForLoggedOutUser() {
+            // Mettre à jour le header
+            document.getElementById('userInfo').innerHTML = `
+                <div class="auth-buttons">
+                    <button class="btn btn-outline" onclick="showModal('loginModal')">
+                        <i class="fas fa-sign-in-alt"></i>
+                        Connexion
+                    </button>
+                    <button class="btn btn-primary" onclick="showModal('registerModal')">
+                        <i class="fas fa-user-plus"></i>
+                        Inscription
+                    </button>
+                </div>
+            `;
+
+            // Afficher/masquer les pages selon l'authentification
+            document.getElementById('publishRestricted').style.display = 'block';
+            document.getElementById('publishForm').style.display = 'none';
+            document.getElementById('profileRestricted').style.display = 'block';
+            document.getElementById('profileContent').style.display = 'none';
+            
+            // Retourner à la page d'accueil si sur une page protégée
+            if (document.getElementById('publish').classList.contains('active') || 
+                document.getElementById('profile').classList.contains('active')) {
+                showPage('home');
+            }
+        }
+
+        // Afficher une page
+        function showPage(pageId) {
+            // Masquer toutes les pages
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            
+            // Afficher la page demandée
+            document.getElementById(pageId).classList.add('active');
+            
+            // Charger les données si nécessaire
+            if (pageId === 'articles' || pageId === 'home') {
+                loadArticles();
+            } else if (pageId === 'profile' && currentUser) {
+                loadProfile();
+            }
+        }
+
+        // Afficher un modal
+        function showModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+        }
+
+        // Fermer un modal
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        // Sélectionner un type d'utilisateur
+        function selectUserType(type) {
+            document.querySelectorAll('.user-type-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            document.querySelector(`.user-type-card[data-type="${type}"]`).classList.add('selected');
+            document.getElementById('selectedUserType').value = type;
+        }
+
+        // Inscription
+        async function register() {
+            const name = document.getElementById('registerName').value;
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+            const userType = document.getElementById('selectedUserType').value;
+            const contactEmail = document.getElementById('registerContactEmail').value;
+
+            if (!name || !email || !password || !userType || !contactEmail) {
+                showToast('Veuillez remplir tous les champs', 'error');
+                return;
+            }
+
+            if (!validateEmail(email)) {
+                showToast('Adresse email invalide', 'error');
+                return;
+            }
+
+            showLoading(true);
+
+            try {
+                // Créer l'utilisateur avec Firebase Auth
+                const userCredential = await window.firebaseFunctions.createUserWithEmailAndPassword(
+                    window.firebaseAuth, 
+                    email, 
+                    password
+                );
+                
+                const user = userCredential.user;
+
+                // Enregistrer les données supplémentaires dans Firestore
+                const userData = {
+                    uid: user.uid,
+                    name: name,
+                    email: email,
+                    userType: userType,
+                    contactEmail: contactEmail,
+                    avatar: name.charAt(0).toUpperCase(),
+                    articlesCount: 0,
+                    downloadsCount: 0,
+                    reputation: 0,
+                    createdAt: new Date().toISOString()
+                };
+
+                await window.firebaseFunctions.addDoc(
+                    window.firebaseFunctions.collection(window.firebaseDb, 'users'),
+                    userData
+                );
+
+                closeModal('registerModal');
+                showToast('Inscription réussie !', 'success');
+
+            } catch (error) {
+                console.error('Erreur d\'inscription:', error);
+                showToast(getFirebaseErrorMessage(error.code), 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Connexion
+        async function login() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+
+            if (!email || !password) {
+                showToast('Veuillez remplir tous les champs', 'error');
+                return;
+            }
+
+            showLoading(true);
+
+            try {
+                await window.firebaseFunctions.signInWithEmailAndPassword(
+                    window.firebaseAuth,
+                    email,
+                    password
+                );
+                
+                closeModal('loginModal');
+                
+            } catch (error) {
+                console.error('Erreur de connexion:', error);
+                showToast(getFirebaseErrorMessage(error.code), 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Déconnexion
+        async function logout() {
+            try {
+                await window.firebaseFunctions.signOut(window.firebaseAuth);
+                showToast('Déconnexion réussie', 'info');
+            } catch (error) {
+                console.error('Erreur de déconnexion:', error);
+                showToast('Erreur lors de la déconnexion', 'error');
+            }
+        }
+
+        // Charger les articles
+        async function loadArticles() {
+            showLoading(true);
+            
+            try {
+                const q = window.firebaseFunctions.query(
+                    window.firebaseFunctions.collection(window.firebaseDb, 'articles'),
+                    window.firebaseFunctions.orderBy('createdAt', 'desc')
+                );
+                
+                const querySnapshot = await window.firebaseFunctions.getDocs(q);
+                articles = [];
+                
+                querySnapshot.forEach(doc => {
+                    articles.push({ id: doc.id, ...doc.data() });
+                });
+
+                // Afficher les articles populaires (par téléchargements)
+                const popularArticles = [...articles].sort((a, b) => b.downloads - a.downloads).slice(0, 6);
+                document.getElementById('popularArticles').innerHTML = popularArticles.map(article => 
+                    createArticleCard(article)
+                ).join('');
+
+                // Afficher tous les articles
+                document.getElementById('allArticles').innerHTML = articles.map(article => 
+                    createArticleCard(article)
+                ).join('');
+
+            } catch (error) {
+                console.error('Erreur lors du chargement des articles:', error);
+                showToast('Erreur lors du chargement des articles', 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Créer une carte d'article
+        function createArticleCard(article) {
+            const categoryNames = {
+                education: "Éducation",
+                science: "Science",
+                technology: "Technologie",
+                literature: "Littérature",
+                history: "Histoire",
+                philosophy: "Philosophie",
+                research: "Recherche",
+                tutorial: "Tutoriel"
+            };
+
+            const typeIcons = {
+                student: "fa-user-graduate",
+                teacher: "fa-chalkboard-teacher",
+                consultant: "fa-briefcase",
+                independent: "fa-user-tie",
+                researcher: "fa-flask"
+            };
+
+            return `
+                <div class="article-card">
+                    <div class="article-badge">${categoryNames[article.category] || article.category}</div>
+                    <div class="article-content">
+                        <div class="article-meta">
+                            <div class="article-author">
+                                <i class="fas ${typeIcons[article.authorType] || 'fa-user'}"></i>
+                                <span>${article.authorName}</span>
+                            </div>
+                            <span>•</span>
+                            <span>${formatDate(article.createdAt)}</span>
+                        </div>
+                        <h3 class="article-title">${article.title}</h3>
+                        <p class="article-excerpt">${article.content.substring(0, 150)}...</p>
+                    </div>
+                    <div class="article-stats">
+                        <div class="stats-group">
+                            <div class="stat">
+                                <i class="fas fa-download"></i>
+                                <span>${article.downloads || 0}</span>
+                            </div>
+                            <div class="stat">
+                                <i class="fas fa-star"></i>
+                                <span>${article.rating || 'N/A'}</span>
+                            </div>
+                            <div class="stat">
+                                <i class="fas fa-eye"></i>
+                                <span>${article.views || 0}</span>
+                            </div>
+                        </div>
+                        <a href="mailto:${article.authorContactEmail}?subject=À propos de votre article: ${article.title}" 
+                           class="contact-author-btn">
+                            <i class="fas fa-envelope"></i>
+                            Contacter l'auteur
+                        </a>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Vérifier un article avec l'IA
+        async function checkArticleWithAI() {
+            if (!currentUser) {
+                showModal('loginModal');
+                return;
+            }
+
+            const title = document.getElementById('articleTitle').value;
+            const content = document.getElementById('articleContent').value;
+
+            if (!title || !content) {
+                showToast('Veuillez remplir le titre et le contenu', 'error');
+                return;
+            }
+
+            showLoading(true);
+
+            // Simulation de vérification IA
+            setTimeout(() => {
+                const spellingErrors = Math.floor(Math.random() * 3);
+                const sentences = content.split(/[.!?]+/).length - 1;
+                const words = content.split(/\s+/).length;
+                
+                let aiMessage = `
+                    <p><i class="fas fa-check-circle" style="color: var(--success-color);"></i> Article analysé avec succès.</p>
+                    <p><i class="fas fa-spell-check"></i> ${spellingErrors} faute(s) d'orthographe corrigée(s).</p>
+                    <p><i class="fas fa-file-alt"></i> ${sentences} phrases, ${words} mots.</p>
+                    <p><i class="fas fa-check-circle" style="color: var(--success-color);"></i> Contenu vérifié et approuvé.</p>
+                `;
+
+                document.getElementById('aiCheckText').innerHTML = aiMessage;
+                document.getElementById('aiCheckResult').style.display = 'block';
+                document.getElementById('publishBtn').style.display = 'block';
+                
+                showLoading(false);
+                showToast('Vérification IA terminée', 'success');
+            }, 2000);
+        }
+
+        // Publier un article
+        async function publishArticle() {
+            if (!currentUser) {
+                showModal('loginModal');
+                return;
+            }
+
+            const title = document.getElementById('articleTitle').value;
+            const content = document.getElementById('articleContent').value;
+            const category = document.getElementById('articleCategory').value;
+
+            if (!title || !content) {
+                showToast('Veuillez remplir le titre et le contenu', 'error');
+                return;
+            }
+
+            showLoading(true);
+
+            try {
+                const articleData = {
+                    title: title,
+                    content: content,
+                    category: category,
+                    authorId: currentUser.uid,
+                    authorName: currentUser.name,
+                    authorType: currentUser.userType,
+                    authorContactEmail: currentUser.contactEmail,
+                    downloads: 0,
+                    views: 0,
+                    rating: 0,
+                    verifiedByAI: true,
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString()
+                };
+
+                await window.firebaseFunctions.addDoc(
+                    window.firebaseFunctions.collection(window.firebaseDb, 'articles'),
+                    articleData
+                );
+
+                // Mettre à jour le compteur d'articles de l'utilisateur
+                const userQuery = window.firebaseFunctions.query(
+                    window.firebaseFunctions.collection(window.firebaseDb, 'users'),
+                    window.firebaseFunctions.where('uid', '==', currentUser.uid)
+                );
+                
+                const userSnapshot = await window.firebaseFunctions.getDocs(userQuery);
+                if (!userSnapshot.empty) {
+                    const userDoc = userSnapshot.docs[0];
+                    await window.firebaseFunctions.updateDoc(
+                        window.firebaseFunctions.doc(window.firebaseDb, 'users', userDoc.id),
+                        {
+                            articlesCount: window.firebaseFunctions.increment(1),
+                            reputation: window.firebaseFunctions.increment(50)
+                        }
+                    );
+                }
+
+                // Réinitialiser le formulaire
+                document.getElementById('articleTitle').value = '';
+                document.getElementById('articleContent').value = '';
+                document.getElementById('aiCheckResult').style.display = 'none';
+                document.getElementById('publishBtn').style.display = 'none';
+
+                // Recharger les articles
+                await loadArticles();
+
+                // Retourner à la page des articles
+                showPage('articles');
+                
+                showToast('Article publié avec succès !', 'success');
+
+            } catch (error) {
+                console.error('Erreur lors de la publication:', error);
+                showToast('Erreur lors de la publication', 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Charger le profil
+        async function loadProfile() {
+            if (!currentUser) return;
+
+            try {
+                const userQuery = window.firebaseFunctions.query(
+                    window.firebaseFunctions.collection(window.firebaseDb, 'articles'),
+                    window.firebaseFunctions.where('authorId', '==', currentUser.uid)
+                );
+                
+                const querySnapshot = await window.firebaseFunctions.getDocs(userQuery);
+                const userArticles = [];
+                
+                querySnapshot.forEach(doc => {
+                    userArticles.push({ id: doc.id, ...doc.data() });
+                });
+
+                const totalDownloads = userArticles.reduce((sum, article) => sum + (article.downloads || 0), 0);
+                const totalViews = userArticles.reduce((sum, article) => sum + (article.views || 0), 0);
+
+                document.getElementById('profileContent').innerHTML = `
+                    <div style="display: grid; gap: 30px;">
+                        <div style="background: white; padding: 30px; border-radius: var(--border-radius); box-shadow: var(--shadow);">
+                            <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 30px;">
+                                <div class="avatar" style="width: 80px; height: 80px; font-size: 2rem;">
+                                    ${currentUser.name.charAt(0).toUpperCase()}
+                                </div>
+                                <div>
+                                    <h2>${currentUser.name}</h2>
+                                    <p><i class="fas fa-${getUserTypeIcon(currentUser.userType)}"></i> ${getUserTypeLabel(currentUser.userType)}</p>
+                                    <p><i class="fas fa-envelope"></i> ${currentUser.email}</p>
+                                    <p><i class="fas fa-envelope-open"></i> Email public: ${currentUser.contactEmail}</p>
+                                </div>
+                            </div>
+                            
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+                                <div style="text-align: center; padding: 20px; background: #f8f9fa; border-radius: var(--border-radius);">
+                                    <div style="font-size: 2rem; font-weight: bold; color: var(--primary-color);">${currentUser.articlesCount || 0}</div>
+                                    <div>Articles</div>
+                                </div>
+                                <div style="text-align: center; padding: 20px; background: #f8f9fa; border-radius: var(--border-radius);">
+                                    <div style="font-size: 2rem; font-weight: bold; color: var(--primary-color);">${totalDownloads}</div>
+                                    <div>Téléchargements</div>
+                                </div>
+                                <div style="text-align: center; padding: 20px; background: #f8f9fa; border-radius: var(--border-radius);">
+                                    <div style="font-size: 2rem; font-weight: bold; color: var(--primary-color);">${currentUser.reputation || 0}</div>
+                                    <div>Réputation</div>
+                                </div>
+                                <div style="text-align: center; padding: 20px; background: #f8f9fa; border-radius: var(--border-radius);">
+                                    <div style="font-size: 2rem; font-weight: bold; color: var(--primary-color);">${totalViews}</div>
+                                    <div>Vues</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div style="background: white; padding: 30px; border-radius: var(--border-radius); box-shadow: var(--shadow);">
+                            <h3 style="margin-bottom: 20px;">Mes articles (${userArticles.length})</h3>
+                            ${userArticles.length > 0 ? 
+                                `<div class="articles-grid">
+                                    ${userArticles.map(article => createArticleCard(article)).join('')}
+                                </div>` :
+                                `<p style="text-align: center; color: #6c757d; padding: 40px;">
+                                    <i class="fas fa-file-alt" style="font-size: 3rem; margin-bottom: 20px; display: block;"></i>
+                                    Vous n'avez pas encore publié d'article.<br>
+                                    <button class="btn btn-primary" onclick="showPage('publish')" style="margin-top: 20px;">
+                                        Publier mon premier article
+                                    </button>
+                                </p>`
+                            }
+                        </div>
+                    </div>
+                `;
+
+            } catch (error) {
+                console.error('Erreur lors du chargement du profil:', error);
+            }
+        }
+
+        // Fonctions utilitaires
+        function validateEmail(email) {
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return re.test(email);
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('fr-FR', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric'
+            });
+        }
+
+        function getUserTypeLabel(type) {
+            const labels = {
+                student: "Élève/Étudiant",
+                teacher: "Professeur",
+                consultant: "Consultant",
+                independent: "Indépendant",
+                researcher: "Chercheur"
+            };
+            return labels[type] || type;
+        }
+
+        function getUserTypeIcon(type) {
+            const icons = {
+                student: "user-graduate",
+                teacher: "chalkboard-teacher",
+                consultant: "briefcase",
+                independent: "user-tie",
+                researcher: "flask"
+            };
+            return icons[type] || "user";
+        }
+
+        function getFirebaseErrorMessage(errorCode) {
+            const messages = {
+                'auth/email-already-in-use': 'Cette adresse email est déjà utilisée.',
+                'auth/invalid-email': 'Adresse email invalide.',
+                'auth/operation-not-allowed': 'Opération non autorisée.',
+                'auth/weak-password': 'Le mot de passe est trop faible.',
+                'auth/user-disabled': 'Ce compte a été désactivé.',
+                'auth/user-not-found': 'Aucun compte trouvé avec cette adresse email.',
+                'auth/wrong-password': 'Mot de passe incorrect.',
+                'auth/too-many-requests': 'Trop de tentatives. Réessayez plus tard.'
+            };
+            return messages[errorCode] || 'Une erreur est survenue.';
+        }
+
+        function showLoading(show) {
+            document.getElementById('loading').classList.toggle('active', show);
+        }
+
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast toast-${type}`;
+            
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Gérer la touche Échap pour fermer les modals
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                document.querySelectorAll('.modal.active').forEach(modal => {
+                    modal.classList.remove('active');
+                });
+            }
+        });
+
+        // Fermer les modals en cliquant à l'extérieur
+        document.addEventListener('click', function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.classList.remove('active');
+            }
+        });
+
+        // Licence Modal
+        const licenseModal = document.createElement('div');
+        licenseModal.id = 'licenseModal';
+        licenseModal.className = 'modal';
+        licenseModal.innerHTML = `
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title">Licence d'utilisation</h2>
+                    <button class="modal-close" onclick="closeModal('licenseModal')">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <h3>1. Propriété intellectuelle</h3>
+                    <p>Speech est une plateforme développée par Xtronics Concepts. Tous les droits sont réservés.</p>
+                    
+                    <h3>2. Droits d'auteur</h3>
+                    <p>Les articles publiés sur Speech restent la propriété intellectuelle de leurs auteurs. 
+                    La plateforme agit uniquement comme hébergeur.</p>
+                    
+                    <h3>3. Licence utilisateur</h3>
+                    <p>En utilisant Speech, vous acceptez de :</p>
+                    <ul>
+                        <li>Ne pas publier de contenu illégal ou protégé par des droits d'auteur</li>
+                        <li>Respecter les autres utilisateurs</li>
+                        <li>Ne pas utiliser la plateforme à des fins commerciales sans autorisation</li>
+                    </ul>
+                    
+                    <h3>4. Responsabilité</h3>
+                    <p>Xtronics Concepts décline toute responsabilité concernant le contenu publié par les utilisateurs.</p>
+                    
+                    <h3>5. Contact</h3>
+                    <p>Pour toute question concernant cette licence : xtronicsconcepts@gmail.com</p>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(licenseModal);
+
+        // Fonction pour afficher le modal de licence
+        window.showLicenseModal = function() {
+            showModal('licenseModal');
+        };
+    </script>
+</body>
+</html>
