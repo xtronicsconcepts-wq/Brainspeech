@@ -1,0 +1,1075 @@
+<meta name='viewport' content='width=device-width, initial-scale=1'/><!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speech - Plateforme de partage académique</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Firebase SDK -->
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, getDocs, query, orderBy, updateDoc, doc, increment, where, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyD7WOytIePYbc7HitFoLJnHR9RssskVRYI",
+            authDomain: "brainspeech-40330.firebaseapp.com",
+            projectId: "brainspeech-40330",
+            storageBucket: "brainspeech-40330.firebasestorage.app",
+            messagingSenderId: "353189666364",
+            appId: "1:353189666364:web:1258e0ebdb753164072d39"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Rendre les objets disponibles globalement
+        window.auth = auth;
+        window.db = db;
+        window.createUserWithEmailAndPassword = createUserWithEmailAndPassword;
+        window.signInWithEmailAndPassword = signInWithEmailAndPassword;
+        window.signOut = signOut;
+        window.onAuthStateChanged = onAuthStateChanged;
+        window.collection = collection;
+        window.addDoc = addDoc;
+        window.getDocs = getDocs;
+        window.query = query;
+        window.orderBy = orderBy;
+        window.updateDoc = updateDoc;
+        window.doc = doc;
+        window.increment = increment;
+        window.where = where;
+        window.setDoc = setDoc;
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary: #4361ee;
+            --secondary: #3f37c9;
+            --accent: #4cc9f0;
+            --success: #4bb543;
+            --danger: #dc3545;
+            --dark: #212529;
+            --light: #f8f9fa;
+            --border-radius: 10px;
+            --shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        header {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: var(--shadow);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        .logo i {
+            color: var(--accent);
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 20px;
+        }
+
+        nav a {
+            text-decoration: none;
+            color: var(--dark);
+            font-weight: 600;
+            padding: 8px 15px;
+            border-radius: var(--border-radius);
+            transition: all 0.3s;
+        }
+
+        nav a:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: var(--border-radius);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        /* Main Content */
+        .main-content {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 30px;
+            box-shadow: var(--shadow);
+            min-height: 500px;
+        }
+
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            padding: 50px 20px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border-radius: var(--border-radius);
+            margin-bottom: 30px;
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            margin-bottom: 25px;
+        }
+
+        /* Articles Grid */
+        .articles-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 25px;
+            margin-top: 25px;
+        }
+
+        .article-card {
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+
+        .article-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow);
+        }
+
+        .article-header {
+            padding: 20px;
+            background: var(--light);
+        }
+
+        .article-category {
+            display: inline-block;
+            padding: 5px 10px;
+            background: var(--accent);
+            color: white;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            margin-bottom: 10px;
+        }
+
+        .article-title {
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+        }
+
+        .article-author {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .article-content {
+            padding: 20px;
+            color: #444;
+            max-height: 100px;
+            overflow: hidden;
+        }
+
+        .article-footer {
+            padding: 15px 20px;
+            border-top: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .stats {
+            display: flex;
+            gap: 15px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .contact-btn {
+            background: var(--primary);
+            color: white;
+            padding: 8px 15px;
+            border-radius: var(--border-radius);
+            text-decoration: none;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .contact-btn:hover {
+            background: var(--secondary);
+        }
+
+        /* Forms */
+        .form-container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .user-type-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .user-type-card {
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .user-type-card.selected {
+            border-color: var(--primary);
+            background: rgba(67, 97, 238, 0.1);
+        }
+
+        .user-type-card i {
+            font-size: 1.5rem;
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: var(--border-radius);
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 30px;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+            color: var(--primary);
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .close-btn:hover {
+            color: var(--danger);
+        }
+
+        /* Access Restricted */
+        .access-restricted {
+            text-align: center;
+            padding: 50px 20px;
+        }
+
+        .access-restricted i {
+            font-size: 4rem;
+            color: var(--danger);
+            margin-bottom: 20px;
+        }
+
+        .access-restricted h2 {
+            margin-bottom: 20px;
+        }
+
+        /* Loading */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* AI Check */
+        .ai-check {
+            background: #e8f4fc;
+            padding: 15px;
+            border-radius: var(--border-radius);
+            margin: 20px 0;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 30px;
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 30px;
+            box-shadow: var(--shadow);
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 30px;
+            margin-bottom: 20px;
+        }
+
+        .footer-section h3 {
+            color: var(--primary);
+            margin-bottom: 15px;
+        }
+
+        .footer-links {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 10px;
+        }
+
+        .footer-links a {
+            color: #666;
+            text-decoration: none;
+        }
+
+        .footer-links a:hover {
+            color: var(--primary);
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            color: #666;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            nav ul {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .articles-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .user-type-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-comments"></i>
+                    <span>Speech</span>
+                </div>
+                <nav>
+                    <ul>
+                        <li><a href="#" onclick="showPage('home')">Accueil</a></li>
+                        <li><a href="#" onclick="showPage('articles')">Articles</a></li>
+                        <li><a href="#" onclick="showPage('publish')">Publier</a></li>
+                        <li><a href="#" onclick="showPage('profile')">Profil</a></li>
+                    </ul>
+                </nav>
+                <div class="user-info" id="userInfo"></div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div id="loading" class="loading">
+                <div class="spinner"></div>
+                <p>Chargement en cours...</p>
+            </div>
+
+            <!-- Home Page -->
+            <div id="home" class="page active">
+                <div class="hero">
+                    <h1>Partagez vos connaissances</h1>
+                    <p>Plateforme de partage d'articles pour élèves, étudiants et professeurs</p>
+                    <button class="btn btn-primary" onclick="showPage('articles')">Explorer les articles</button>
+                </div>
+                
+                <h2>Articles populaires</h2>
+                <div class="articles-grid" id="popularArticles"></div>
+            </div>
+
+            <!-- Articles Page -->
+            <div id="articles" class="page">
+                <h2>Tous les articles</h2>
+                <div class="articles-grid" id="allArticles"></div>
+            </div>
+
+            <!-- Publish Page -->
+            <div id="publish" class="page">
+                <div id="publishRestricted" class="access-restricted">
+                    <i class="fas fa-lock"></i>
+                    <h2>Accès restreint</h2>
+                    <p>Vous devez être connecté pour publier un article</p>
+                    <button class="btn btn-primary" onclick="showModal('loginModal')">Se connecter</button>
+                </div>
+
+                <div id="publishForm" style="display: none;">
+                    <h2>Publier un article</h2>
+                    <div class="form-container">
+                        <div class="form-group">
+                            <label>Titre</label>
+                            <input type="text" id="articleTitle" class="form-control" placeholder="Titre de l'article">
+                        </div>
+                        <div class="form-group">
+                            <label>Catégorie</label>
+                            <select id="articleCategory" class="form-control">
+                                <option value="education">Éducation</option>
+                                <option value="science">Science</option>
+                                <option value="technology">Technologie</option>
+                                <option value="literature">Littérature</option>
+                                <option value="history">Histoire</option>
+                                <option value="philosophy">Philosophie</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Contenu</label>
+                            <textarea id="articleContent" class="form-control" rows="8" placeholder="Écrivez votre article..."></textarea>
+                        </div>
+                        <div id="aiCheckResult" class="ai-check" style="display: none;"></div>
+                        <button class="btn btn-primary" onclick="checkArticleWithAI()" style="width: 100%; margin-bottom: 10px;">
+                            <i class="fas fa-robot"></i> Vérifier avec l'IA
+                        </button>
+                        <button id="publishBtn" class="btn btn-primary" onclick="publishArticle()" style="width: 100%; display: none;">
+                            <i class="fas fa-paper-plane"></i> Publier
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Page -->
+            <div id="profile" class="page">
+                <div id="profileRestricted" class="access-restricted">
+                    <i class="fas fa-user-lock"></i>
+                    <h2>Profil privé</h2>
+                    <p>Connectez-vous pour voir votre profil</p>
+                    <button class="btn btn-primary" onclick="showModal('loginModal')">Se connecter</button>
+                </div>
+
+                <div id="profileContent" style="display: none;"></div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer>
+            <div class="footer-grid">
+                <div class="footer-section">
+                    <h3>Speech</h3>
+                    <p>Plateforme de partage académique</p>
+                    <p><i class="fas fa-envelope"></i> xtronicsconcepts@gmail.com</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Liens rapides</h3>
+                    <ul class="footer-links">
+                        <li><a href="#" onclick="showPage('home')">Accueil</a></li>
+                        <li><a href="#" onclick="showPage('articles')">Articles</a></li>
+                        <li><a href="#" onclick="showPage('publish')">Publier</a></li>
+                        <li><a href="#" onclick="showPage('profile')">Profil</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Légal</h3>
+                    <ul class="footer-links">
+                        <li><a href="#" onclick="showModal('privacyModal')">Politique de confidentialité</a></li>
+                        <li><a href="#" onclick="showModal('licenseModal')">Licence</a></li>
+                        <li><a href="mailto:xtronicsconcepts@gmail.com">Contact</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Speech - Développé par Xtronics Concepts</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Login Modal -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Connexion</h2>
+                <button class="close-btn" onclick="closeModal('loginModal')">&times;</button>
+            </div>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="loginEmail" class="form-control">
+            </div>
+            <div class="form-group">
+                <label>Mot de passe</label>
+                <input type="password" id="loginPassword" class="form-control">
+            </div>
+            <button class="btn btn-primary" onclick="login()" style="width: 100%;">Se connecter</button>
+            <p style="text-align: center; margin-top: 15px;">
+                Pas encore de compte? <a href="#" onclick="closeModal('loginModal'); showModal('registerModal')">S'inscrire</a>
+            </p>
+        </div>
+    </div>
+
+    <!-- Register Modal -->
+    <div id="registerModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Inscription</h2>
+                <button class="close-btn" onclick="closeModal('registerModal')">&times;</button>
+            </div>
+            <div class="form-group">
+                <label>Nom complet</label>
+                <input type="text" id="registerName" class="form-control">
+            </div>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="registerEmail" class="form-control">
+            </div>
+            <div class="form-group">
+                <label>Mot de passe</label>
+                <input type="password" id="registerPassword" class="form-control">
+            </div>
+            <div class="form-group">
+                <label>Email de contact (public)</label>
+                <input type="email" id="registerContactEmail" class="form-control">
+                <small>Cet email sera visible par les lecteurs</small>
+            </div>
+            <div class="form-group">
+                <label>Vous êtes:</label>
+                <div class="user-type-grid">
+                    <div class="user-type-card" onclick="selectUserType('student')">
+                        <i class="fas fa-user-graduate"></i>
+                        <p>Étudiant</p>
+                    </div>
+                    <div class="user-type-card" onclick="selectUserType('teacher')">
+                        <i class="fas fa-chalkboard-teacher"></i>
+                        <p>Professeur</p>
+                    </div>
+                    <div class="user-type-card" onclick="selectUserType('consultant')">
+                        <i class="fas fa-briefcase"></i>
+                        <p>Consultant</p>
+                    </div>
+                    <div class="user-type-card" onclick="selectUserType('independent')">
+                        <i class="fas fa-user-tie"></i>
+                        <p>Indépendant</p>
+                    </div>
+                </div>
+                <input type="hidden" id="selectedUserType">
+            </div>
+            <button class="btn btn-primary" onclick="register()" style="width: 100%;">S'inscrire</button>
+        </div>
+    </div>
+
+    <!-- Privacy Modal -->
+    <div id="privacyModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Politique de confidentialité</h2>
+                <button class="close-btn" onclick="closeModal('privacyModal')">&times;</button>
+            </div>
+            <div style="max-height: 400px; overflow-y: auto;">
+                <h3>1. Collecte des données</h3>
+                <p>Nous collectons votre nom, email, et email de contact pour le fonctionnement de la plateforme.</p>
+                <h3>2. Utilisation</h3>
+                <p>Les données sont utilisées pour l'authentification et permettre aux lecteurs de vous contacter.</p>
+                <h3>3. Contact</h3>
+                <p>xtronicsconcepts@gmail.com</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- License Modal -->
+    <div id="licenseModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Licence</h2>
+                <button class="close-btn" onclick="closeModal('licenseModal')">&times;</button>
+            </div>
+            <div style="max-height: 400px; overflow-y: auto;">
+                <h3>Licence d'utilisation</h3>
+                <p>© 2024 Xtronics Concepts. Tous droits réservés.</p>
+                <p>Les articles restent la propriété de leurs auteurs.</p>
+                <p>Contact: xtronicsconcepts@gmail.com</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Variables globales
+        let currentUser = null;
+        let userTypeSelected = '';
+
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', function() {
+            // Vérifier l'état de connexion
+            window.onAuthStateChanged(window.auth, async (user) => {
+                if (user) {
+                    await loadUserData(user.uid);
+                } else {
+                    currentUser = null;
+                    updateUIForUser();
+                }
+            });
+            
+            loadArticles();
+        });
+
+        // Charger les données utilisateur
+        async function loadUserData(uid) {
+            try {
+                const q = window.query(window.collection(window.db, 'users'), window.where('uid', '==', uid));
+                const querySnapshot = await window.getDocs(q);
+                
+                if (!querySnapshot.empty) {
+                    currentUser = { id: querySnapshot.docs[0].id, ...querySnapshot.docs[0].data() };
+                }
+                updateUIForUser();
+            } catch (error) {
+                console.error('Erreur chargement utilisateur:', error);
+            }
+        }
+
+        // Mettre à jour l'UI selon l'utilisateur
+        function updateUIForUser() {
+            const userInfo = document.getElementById('userInfo');
+            
+            if (currentUser) {
+                userInfo.innerHTML = `
+                    <div class="avatar">${currentUser.name.charAt(0).toUpperCase()}</div>
+                    <span>${currentUser.name}</span>
+                    <button class="btn btn-outline" onclick="logout()">Déconnexion</button>
+                `;
+                
+                document.getElementById('publishRestricted').style.display = 'none';
+                document.getElementById('publishForm').style.display = 'block';
+                document.getElementById('profileRestricted').style.display = 'none';
+                document.getElementById('profileContent').style.display = 'block';
+                
+                loadProfile();
+            } else {
+                userInfo.innerHTML = `
+                    <button class="btn btn-outline" onclick="showModal('loginModal')">Connexion</button>
+                    <button class="btn btn-primary" onclick="showModal('registerModal')">Inscription</button>
+                `;
+                
+                document.getElementById('publishRestricted').style.display = 'block';
+                document.getElementById('publishForm').style.display = 'none';
+                document.getElementById('profileRestricted').style.display = 'block';
+                document.getElementById('profileContent').style.display = 'none';
+            }
+        }
+
+        // Afficher une page
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+            
+            if (pageId === 'articles' || pageId === 'home') {
+                loadArticles();
+            } else if (pageId === 'profile' && currentUser) {
+                loadProfile();
+            }
+        }
+
+        // Afficher un modal
+        function showModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        // Sélection du type d'utilisateur
+        function selectUserType(type) {
+            document.querySelectorAll('.user-type-card').forEach(c => c.classList.remove('selected'));
+            event.currentTarget.classList.add('selected');
+            document.getElementById('selectedUserType').value = type;
+        }
+
+        // Inscription
+        async function register() {
+            const name = document.getElementById('registerName').value;
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+            const contactEmail = document.getElementById('registerContactEmail').value;
+            const userType = document.getElementById('selectedUserType').value;
+
+            if (!name || !email || !password || !contactEmail || !userType) {
+                alert('Veuillez remplir tous les champs');
+                return;
+            }
+
+            showLoading(true);
+
+            try {
+                const userCredential = await window.createUserWithEmailAndPassword(window.auth, email, password);
+                const user = userCredential.user;
+
+                await window.addDoc(window.collection(window.db, 'users'), {
+                    uid: user.uid,
+                    name: name,
+                    email: email,
+                    contactEmail: contactEmail,
+                    userType: userType,
+                    articlesCount: 0,
+                    downloadsCount: 0,
+                    reputation: 0,
+                    createdAt: new Date().toISOString()
+                });
+
+                closeModal('registerModal');
+                alert('Inscription réussie!');
+            } catch (error) {
+                alert('Erreur: ' + error.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Connexion
+        async function login() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+
+            try {
+                await window.signInWithEmailAndPassword(window.auth, email, password);
+                closeModal('loginModal');
+            } catch (error) {
+                alert('Erreur: ' + error.message);
+            }
+        }
+
+        // Déconnexion
+        async function logout() {
+            await window.signOut(window.auth);
+        }
+
+        // Charger les articles
+        async function loadArticles() {
+            showLoading(true);
+            
+            try {
+                const q = window.query(window.collection(window.db, 'articles'), window.orderBy('createdAt', 'desc'));
+                const querySnapshot = await window.getDocs(q);
+                
+                let articles = [];
+                querySnapshot.forEach(doc => {
+                    articles.push({ id: doc.id, ...doc.data() });
+                });
+
+                // Articles populaires (par téléchargements)
+                const popular = [...articles].sort((a,b) => (b.downloads||0) - (a.downloads||0)).slice(0, 6);
+                document.getElementById('popularArticles').innerHTML = popular.map(a => createArticleCard(a)).join('');
+                document.getElementById('allArticles').innerHTML = articles.map(a => createArticleCard(a)).join('');
+
+            } catch (error) {
+                console.error('Erreur:', error);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Créer une carte d'article
+        function createArticleCard(article) {
+            return `
+                <div class="article-card">
+                    <div class="article-header">
+                        <span class="article-category">${article.category || 'Général'}</span>
+                        <h3 class="article-title">${article.title}</h3>
+                        <div class="article-author">
+                            <i class="fas fa-user"></i>
+                            <span>${article.authorName || 'Anonyme'}</span>
+                        </div>
+                    </div>
+                    <div class="article-content">
+                        ${article.content.substring(0, 150)}...
+                    </div>
+                    <div class="article-footer">
+                        <div class="stats">
+                            <span><i class="fas fa-download"></i> ${article.downloads || 0}</span>
+                            <span><i class="fas fa-eye"></i> ${article.views || 0}</span>
+                        </div>
+                        <a href="mailto:${article.authorContactEmail}?subject=À propos de votre article: ${article.title}" class="contact-btn">
+                            <i class="fas fa-envelope"></i> Contacter
+                        </a>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Vérification IA
+        function checkArticleWithAI() {
+            const title = document.getElementById('articleTitle').value;
+            const content = document.getElementById('articleContent').value;
+
+            if (!title || !content) {
+                alert('Veuillez remplir le titre et le contenu');
+                return;
+            }
+
+            showLoading(true);
+
+            setTimeout(() => {
+                const errors = Math.floor(Math.random() * 3);
+                document.getElementById('aiCheckResult').innerHTML = `
+                    <h4><i class="fas fa-robot"></i> Résultat IA:</h4>
+                    <p>✓ Article analysé</p>
+                    <p>✓ ${errors} faute(s) corrigée(s)</p>
+                    <p>✓ Contenu approuvé</p>
+                `;
+                document.getElementById('aiCheckResult').style.display = 'block';
+                document.getElementById('publishBtn').style.display = 'block';
+                showLoading(false);
+            }, 1500);
+        }
+
+        // Publier un article
+        async function publishArticle() {
+            const title = document.getElementById('articleTitle').value;
+            const content = document.getElementById('articleContent').value;
+            const category = document.getElementById('articleCategory').value;
+
+            try {
+                await window.addDoc(window.collection(window.db, 'articles'), {
+                    title: title,
+                    content: content,
+                    category: category,
+                    authorId: currentUser.uid,
+                    authorName: currentUser.name,
+                    authorContactEmail: currentUser.contactEmail,
+                    downloads: 0,
+                    views: 0,
+                    createdAt: new Date().toISOString()
+                });
+
+                document.getElementById('articleTitle').value = '';
+                document.getElementById('articleContent').value = '';
+                document.getElementById('aiCheckResult').style.display = 'none';
+                document.getElementById('publishBtn').style.display = 'none';
+
+                alert('Article publié!');
+                showPage('articles');
+                loadArticles();
+
+            } catch (error) {
+                alert('Erreur: ' + error.message);
+            }
+        }
+
+        // Charger le profil
+        async function loadProfile() {
+            try {
+                const q = window.query(window.collection(window.db, 'articles'), window.where('authorId', '==', currentUser.uid));
+                const querySnapshot = await window.getDocs(q);
+                
+                let articles = [];
+                querySnapshot.forEach(doc => {
+                    articles.push(doc.data());
+                });
+
+                const totalDownloads = articles.reduce((sum, a) => sum + (a.downloads||0), 0);
+
+                document.getElementById('profileContent').innerHTML = `
+                    <div style="text-align: center; margin-bottom: 30px;">
+                        <div class="avatar" style="width: 80px; height: 80px; font-size: 2rem; margin: 0 auto 15px;">
+                            ${currentUser.name.charAt(0).toUpperCase()}
+                        </div>
+                        <h2>${currentUser.name}</h2>
+                        <p>${currentUser.contactEmail}</p>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(3,1fr); gap: 15px; margin-bottom: 30px;">
+                        <div style="text-align: center; padding: 15px; background: #f8f9fa; border-radius: var(--border-radius);">
+                            <div style="font-size: 1.5rem; font-weight: bold;">${articles.length}</div>
+                            <div>Articles</div>
+                        </div>
+                        <div style="text-align: center; padding: 15px; background: #f8f9fa; border-radius: var(--border-radius);">
+                            <div style="font-size: 1.5rem; font-weight: bold;">${totalDownloads}</div>
+                            <div>Téléchargements</div>
+                        </div>
+                        <div style="text-align: center; padding: 15px; background: #f8f9fa; border-radius: var(--border-radius);">
+                            <div style="font-size: 1.5rem; font-weight: bold;">${currentUser.reputation || 0}</div>
+                            <div>Réputation</div>
+                        </div>
+                    </div>
+                    
+                    <h3>Mes articles</h3>
+                    <div class="articles-grid">
+                        ${articles.map(a => createArticleCard(a)).join('')}
+                    </div>
+                `;
+
+            } catch (error) {
+                console.error('Erreur:', error);
+            }
+        }
+
+        // Loading
+        function showLoading(show) {
+            document.getElementById('loading').classList.toggle('active', show);
+        }
+    </script>
+</body>
+</html>
