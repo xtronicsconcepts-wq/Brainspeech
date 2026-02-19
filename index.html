@@ -1,21 +1,44 @@
-<meta name='viewport' content='width=device-width, initial-scale=1'/><!DOCTYPE html>
+<meta name='viewport' content='width=device-width, initial-scale=1'/><meta name='viewport' content='width=device-width, initial-scale=1'/><!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Speech - La plateforme académique intelligente</title>
-    <!-- Font Awesome -->
+    <title>Speech - Plateforme de partage académique</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- PDF Generation -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <!-- Firebase SDK -->
     <script type="module">
+        // Import the functions you need from the SDKs you need
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, getDocs, query, orderBy, updateDoc, doc, increment, where, getDoc, setDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { 
+            getAuth, 
+            createUserWithEmailAndPassword, 
+            signInWithEmailAndPassword, 
+            signOut, 
+            onAuthStateChanged 
+        } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { 
+            getFirestore, 
+            collection, 
+            addDoc, 
+            getDocs, 
+            query, 
+            orderBy, 
+            updateDoc, 
+            doc, 
+            increment,
+            where,
+            arrayUnion,
+            arrayRemove,
+            getDoc
+        } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { 
+            getStorage, 
+            ref, 
+            uploadBytes, 
+            getDownloadURL 
+        } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
+        // Your web app's Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyD7WOytIePYbc7HitFoLJnHR9RssskVRYI",
             authDomain: "brainspeech-40330.firebaseapp.com",
@@ -25,251 +48,230 @@
             appId: "1:353189666364:web:1258e0ebdb753164072d39"
         };
 
+        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const googleProvider = new GoogleAuthProvider();
+        const storage = getStorage(app);
 
-        window.auth = auth;
-        window.db = db;
-        window.googleProvider = googleProvider;
-        window.signInWithPopup = signInWithPopup;
-        window.createUserWithEmailAndPassword = createUserWithEmailAndPassword;
-        window.signInWithEmailAndPassword = signInWithEmailAndPassword;
-        window.signOut = signOut;
-        window.onAuthStateChanged = onAuthStateChanged;
-        window.collection = collection;
-        window.addDoc = addDoc;
-        window.getDocs = getDocs;
-        window.query = query;
-        window.orderBy = orderBy;
-        window.updateDoc = updateDoc;
-        window.doc = doc;
-        window.increment = increment;
-        window.where = where;
-        window.getDoc = getDoc;
-        window.setDoc = setDoc;
-        window.arrayUnion = arrayUnion;
-        window.arrayRemove = arrayRemove;
+        // Exposer les objets Firebase globalement
+        window.firebaseAuth = auth;
+        window.firebaseDb = db;
+        window.firebaseStorage = storage;
+        window.firebaseFunctions = {
+            createUserWithEmailAndPassword,
+            signInWithEmailAndPassword,
+            signOut,
+            onAuthStateChanged,
+            collection,
+            addDoc,
+            getDocs,
+            query,
+            orderBy,
+            updateDoc,
+            doc,
+            increment,
+            where,
+            arrayUnion,
+            arrayRemove,
+            getDoc,
+            ref,
+            uploadBytes,
+            getDownloadURL
+        };
+        
+        console.log("Firebase initialisé avec succès !");
     </script>
     <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --accent-color: #4cc9f0;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --success-color: #4bb543;
+            --warning-color: #f0ad4e;
+            --danger-color: #d9534f;
+            --border-radius: 12px;
+            --shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Inter', sans-serif;
-        }
-
-        :root {
-            --primary: #8A2BE2;
-            --secondary: #4B0082;
-            --accent: #FF6B6B;
-            --success: #4CAF50;
-            --warning: #FFC107;
-            --danger: #F44336;
-            --dark: #1a1a2e;
-            --light: #f8f9fa;
-            --gradient: linear-gradient(135deg, #8A2BE2, #4B0082, #FF6B6B);
-            --border-radius: 16px;
-            --shadow: 0 8px 30px rgba(0,0,0,0.12);
-            --shadow-hover: 0 15px 40px rgba(138,43,226,0.2);
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: var(--dark-color);
+            line-height: 1.6;
             min-height: 100vh;
-            padding: 20px;
-            transition: background 0.3s ease;
-        }
-
-        /* Thèmes */
-        body.theme-dark {
-            background: linear-gradient(135deg, #2c3e50, #1a1a2e);
-        }
-
-        body.theme-light {
-            background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
-        }
-
-        body.theme-blue {
-            background: linear-gradient(135deg, #2193b0, #6dd5ed);
-        }
-
-        body.theme-purple {
-            background: linear-gradient(135deg, #8A2BE2, #4B0082);
-        }
-
-        body.theme-green {
-            background: linear-gradient(135deg, #11998e, #38ef7d);
         }
 
         .container {
-            max-width: 1400px;
+            max-width: 1200px;
             margin: 0 auto;
+            padding: 0 20px;
         }
 
-        /* Header avec nouveau logo */
+        /* Header */
         header {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
-            border-radius: 50px;
-            padding: 15px 30px;
-            margin-bottom: 30px;
             box-shadow: var(--shadow);
-            border: 2px solid rgba(138,43,226,0.2);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
         }
 
         .header-content {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            flex-wrap: wrap;
-            gap: 20px;
+            padding: 15px 0;
         }
 
         .logo {
             display: flex;
             align-items: center;
-            gap: 15px;
-        }
-
-        .logo-icon {
-            width: 50px;
-            height: 50px;
-            background: var(--gradient);
-            border-radius: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transform: rotate(10deg);
-            box-shadow: var(--shadow);
-            animation: float 3s ease-in-out infinite;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: rotate(10deg) translateY(0); }
-            50% { transform: rotate(10deg) translateY(-5px); }
-        }
-
-        .logo-icon i {
-            font-size: 2rem;
-            color: white;
-            transform: rotate(-10deg);
-        }
-
-        .logo-text {
-            font-size: 2rem;
+            gap: 12px;
+            font-size: 1.8rem;
             font-weight: 800;
-            background: var(--gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            letter-spacing: -1px;
+            color: var(--primary-color);
+            text-decoration: none;
         }
 
-        .logo-badge {
-            background: var(--accent);
-            color: white;
-            padding: 3px 10px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 600;
+        .logo i {
+            color: var(--accent-color);
+            font-size: 2rem;
         }
 
-        /* Navigation */
         nav ul {
             display: flex;
             list-style: none;
-            gap: 15px;
+            gap: 30px;
         }
 
         nav a {
             text-decoration: none;
-            color: var(--dark);
+            color: var(--dark-color);
             font-weight: 600;
-            padding: 10px 20px;
-            border-radius: 30px;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            padding: 8px 0;
+            position: relative;
+            transition: var(--transition);
         }
 
-        nav a:hover, nav a.active {
-            background: var(--gradient);
-            color: white;
+        nav a:hover {
+            color: var(--primary-color);
         }
 
-        /* Theme Switcher */
-        .theme-switcher {
-            display: flex;
-            gap: 8px;
-            background: rgba(0,0,0,0.05);
-            padding: 5px;
-            border-radius: 30px;
+        nav a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--primary-color);
+            transition: var(--transition);
         }
 
-        .theme-btn {
-            width: 35px;
-            height: 35px;
-            border-radius: 50%;
-            border: 2px solid transparent;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .theme-btn:hover {
-            transform: scale(1.1);
-            border-color: var(--primary);
-        }
-
-        .theme-btn.dark { background: #1a1a2e; }
-        .theme-btn.light { background: #f5f7fa; }
-        .theme-btn.blue { background: #2193b0; }
-        .theme-btn.purple { background: #8A2BE2; }
-        .theme-btn.green { background: #11998e; }
-
-        /* Boutons */
-        .btn {
-            padding: 12px 25px;
-            border: none;
-            border-radius: 30px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.95rem;
-        }
-
-        .btn-primary {
-            background: var(--gradient);
-            color: white;
-        }
-
-        .btn-google {
-            background: white;
-            color: #757575;
-            border: 1px solid #ddd;
+        nav a:hover::after {
             width: 100%;
         }
 
-        .btn-google:hover {
-            background: #f5f5f5;
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .auth-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 10px 24px;
+            border-radius: var(--border-radius);
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--primary-color);
+            border: 2px solid var(--primary-color);
         }
 
         .btn:hover {
             transform: translateY(-2px);
-            box-shadow: var(--shadow-hover);
+            box-shadow: var(--shadow);
         }
 
-        /* Hero Section amélioré */
+        .user-avatar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+        }
+
+        .avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            border: 3px solid white;
+            box-shadow: var(--shadow);
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 40px 0;
+            min-height: calc(100vh - 180px);
+        }
+
+        .page {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Hero Section */
         .hero {
             text-align: center;
-            padding: 80px 40px;
-            background: var(--gradient);
+            padding: 60px 40px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             color: white;
-            border-radius: 50px;
+            border-radius: var(--border-radius);
             margin-bottom: 40px;
             position: relative;
             overflow: hidden;
@@ -282,14 +284,8 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="10" cy="10" r="5" fill="white" opacity="0.1"/><circle cx="90" cy="20" r="10" fill="white" opacity="0.1"/><circle cx="30" cy="80" r="15" fill="white" opacity="0.1"/></svg>');
-            background-size: 200px;
-            animation: moveBackground 20s linear infinite;
-        }
-
-        @keyframes moveBackground {
-            0% { transform: translate(0, 0); }
-            100% { transform: translate(50px, 50px); }
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M0,0 L100,0 L100,100 Z" fill="rgba(255,255,255,0.1)"/></svg>');
+            background-size: cover;
         }
 
         .hero-content {
@@ -298,88 +294,131 @@
         }
 
         .hero h1 {
-            font-size: 4rem;
+            font-size: 3rem;
             margin-bottom: 20px;
             font-weight: 800;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
 
         .hero p {
             font-size: 1.3rem;
-            margin-bottom: 30px;
-            opacity: 0.95;
-        }
-
-        .hero-stats {
-            display: flex;
-            justify-content: center;
-            gap: 50px;
-            margin-top: 40px;
-        }
-
-        .hero-stat {
-            text-align: center;
-        }
-
-        .hero-stat-value {
-            font-size: 2rem;
-            font-weight: 800;
-        }
-
-        .hero-stat-label {
-            font-size: 0.9rem;
+            max-width: 700px;
+            margin: 0 auto 30px;
             opacity: 0.9;
         }
 
-        /* Articles Grid amélioré */
+        /* Search Bar */
+        .search-container {
+            margin: 30px 0;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 300px;
+            position: relative;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 15px 15px 15px 45px;
+            border: 2px solid #e9ecef;
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(76, 201, 240, 0.2);
+        }
+
+        .search-filters {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .search-filters select {
+            padding: 15px 20px;
+            border: 2px solid #e9ecef;
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            background: white;
+            cursor: pointer;
+        }
+
+        /* Articles Grid */
         .articles-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
             gap: 30px;
             margin-top: 30px;
         }
 
         .article-card {
             background: white;
-            border-radius: 30px;
+            border-radius: var(--border-radius);
             overflow: hidden;
             box-shadow: var(--shadow);
-            transition: all 0.3s;
+            transition: var(--transition);
             position: relative;
-            border: 1px solid rgba(138,43,226,0.1);
+            cursor: pointer;
         }
 
         .article-card:hover {
             transform: translateY(-10px);
-            box-shadow: var(--shadow-hover);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
         }
 
         .article-badge {
             position: absolute;
-            top: 20px;
-            right: 20px;
-            background: var(--gradient);
+            top: 15px;
+            right: 15px;
+            background: var(--primary-color);
             color: white;
-            padding: 8px 20px;
-            border-radius: 30px;
+            padding: 5px 15px;
+            border-radius: 20px;
             font-size: 0.8rem;
             font-weight: 600;
             z-index: 1;
         }
 
-        .article-header {
+        .article-file-badge {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: var(--accent-color);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            z-index: 1;
+        }
+
+        .article-content {
             padding: 25px;
-            background: linear-gradient(135deg, #f8f9fa, #ffffff);
-            border-bottom: 2px solid var(--accent);
         }
 
         .article-meta {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 10px;
             margin-bottom: 15px;
-            color: #666;
+            color: #6c757d;
             font-size: 0.9rem;
+            flex-wrap: wrap;
         }
 
         .article-author {
@@ -387,222 +426,440 @@
             align-items: center;
             gap: 8px;
             font-weight: 600;
-            color: var(--primary);
         }
 
         .article-title {
-            font-size: 1.6rem;
+            font-size: 1.4rem;
             margin-bottom: 15px;
-            color: var(--dark);
+            color: var(--dark-color);
             line-height: 1.4;
         }
 
-        .article-content-preview {
-            padding: 25px;
-            color: #555;
+        .article-excerpt {
+            color: #495057;
+            margin-bottom: 20px;
             line-height: 1.6;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
         }
 
         .article-stats {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 20px 25px;
+            padding: 20px;
             border-top: 1px solid #eee;
-            background: #fafafa;
+            background: #f8f9fa;
         }
 
         .stats-group {
             display: flex;
             gap: 20px;
+            flex-wrap: wrap;
         }
 
-        .stat-item {
+        .stat {
             display: flex;
             align-items: center;
             gap: 5px;
-            color: #666;
-            font-size: 0.9rem;
-        }
-
-        .stat-item i {
-            color: var(--primary);
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 10px;
-        }
-
-        .btn-download, .btn-comments {
-            padding: 10px 15px;
-            border: none;
-            border-radius: 25px;
+            color: #6c757d;
             cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 5px;
+            transition: var(--transition);
         }
 
-        .btn-download {
-            background: var(--success);
+        .stat:hover {
+            color: var(--primary-color);
+        }
+
+        .stat.liked {
+            color: var(--danger-color);
+        }
+
+        .stat.liked i {
+            font-weight: 900;
+        }
+
+        .contact-author-btn {
+            background: var(--accent-color);
             color: white;
-        }
-
-        .btn-comments {
-            background: var(--primary);
-            color: white;
-        }
-
-        /* Modal Article avec onglets */
-        .article-modal {
-            max-width: 900px;
-            width: 95%;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-
-        .article-tabs {
-            display: flex;
-            gap: 10px;
-            border-bottom: 2px solid #eee;
-            padding-bottom: 15px;
-            margin-bottom: 20px;
-        }
-
-        .tab-btn {
-            padding: 10px 25px;
-            border: none;
-            background: none;
+            padding: 8px 20px;
+            border-radius: var(--border-radius);
+            text-decoration: none;
             font-weight: 600;
-            cursor: pointer;
-            border-radius: 25px;
-            transition: all 0.3s;
-            display: flex;
+            transition: var(--transition);
+            display: inline-flex;
             align-items: center;
             gap: 8px;
         }
 
-        .tab-btn.active {
-            background: var(--gradient);
+        .contact-author-btn:hover {
+            background: var(--primary-color);
             color: white;
         }
 
-        .tab-content {
-            display: none;
+        .download-btn {
+            background: var(--success-color);
+            color: white;
+            padding: 8px 20px;
+            border-radius: var(--border-radius);
+            text-decoration: none;
+            font-weight: 600;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            border: none;
+            cursor: pointer;
         }
 
-        .tab-content.active {
-            display: block;
+        .download-btn:hover {
+            background: #3a9e3a;
+            transform: translateY(-2px);
         }
 
-        .article-full-content {
-            line-height: 1.8;
-            color: #333;
-        }
-
-        .article-full-content p {
-            margin-bottom: 15px;
-        }
-
-        /* Section commentaires */
-        .comments-section {
-            max-height: 500px;
+        /* Article Detail Modal */
+        .article-detail-modal {
+            max-width: 800px;
+            max-height: 90vh;
             overflow-y: auto;
         }
 
+        .article-detail-header {
+            margin-bottom: 30px;
+        }
+
+        .article-detail-title {
+            font-size: 2rem;
+            margin-bottom: 15px;
+            color: var(--dark-color);
+        }
+
+        .article-detail-meta {
+            display: flex;
+            gap: 20px;
+            color: #6c757d;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .article-detail-content {
+            line-height: 1.8;
+            font-size: 1.1rem;
+            margin-bottom: 30px;
+            white-space: pre-wrap;
+        }
+
+        .article-detail-actions {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .article-file-info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        /* Comments Section */
+        .comments-section {
+            margin-top: 40px;
+            border-top: 2px solid #e9ecef;
+            padding-top: 30px;
+        }
+
+        .comments-title {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
         .comment-form {
-            margin-bottom: 25px;
+            margin-bottom: 30px;
         }
 
         .comment-input {
             width: 100%;
             padding: 15px;
-            border: 2px solid #eee;
-            border-radius: 25px;
+            border: 2px solid #e9ecef;
+            border-radius: var(--border-radius);
             font-size: 1rem;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
+            resize: vertical;
+            min-height: 100px;
         }
 
         .comment-input:focus {
             outline: none;
-            border-color: var(--primary);
+            border-color: var(--accent-color);
         }
 
-        .comment {
+        .comments-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .comment-card {
             background: #f8f9fa;
-            border-radius: 20px;
-            padding: 15px;
-            margin-bottom: 15px;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            border-left: 4px solid var(--primary-color);
         }
 
         .comment-header {
             display: flex;
             justify-content: space-between;
+            align-items: center;
             margin-bottom: 10px;
-            font-weight: 600;
         }
 
         .comment-author {
-            color: var(--primary);
-        }
-
-        .comment-date {
-            color: #999;
-            font-size: 0.8rem;
-        }
-
-        .comment-content {
-            color: #333;
-            line-height: 1.5;
-        }
-
-        .comment-actions {
-            margin-top: 10px;
             display: flex;
-            gap: 15px;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
         }
 
-        .comment-like {
-            color: #666;
-            cursor: pointer;
+        .comment-author .avatar-small {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-size: 0.9rem;
         }
 
-        .comment-like i {
-            color: var(--danger);
+        .comment-date {
+            color: #6c757d;
+            font-size: 0.9rem;
         }
 
-        /* IA Check amélioré */
-        .ai-check-enhanced {
-            background: linear-gradient(135deg, #667eea, #764ba2);
+        .comment-content {
+            line-height: 1.6;
+        }
+
+        .comment-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .comment-action {
+            color: #6c757d;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: var(--transition);
+        }
+
+        .comment-action:hover {
+            color: var(--primary-color);
+        }
+
+        /* File Upload */
+        .file-upload-area {
+            border: 3px dashed #e9ecef;
+            border-radius: var(--border-radius);
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+            margin-bottom: 20px;
+        }
+
+        .file-upload-area:hover {
+            border-color: var(--primary-color);
+            background: rgba(67, 97, 238, 0.05);
+        }
+
+        .file-upload-area i {
+            font-size: 3rem;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+        }
+
+        .file-upload-area p {
+            color: #6c757d;
+        }
+
+        .file-upload-area .file-name {
+            margin-top: 10px;
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+
+        .file-types {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 15px;
+        }
+
+        .file-type-badge {
+            background: #e9ecef;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            color: #495057;
+        }
+
+        .file-preview {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: var(--border-radius);
+        }
+
+        /* AI Analysis */
+        .ai-analysis {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 25px;
-            border-radius: 30px;
-            margin: 20px 0;
+            padding: 30px;
+            border-radius: var(--border-radius);
+            margin-bottom: 30px;
         }
 
         .ai-score {
-            font-size: 3rem;
-            font-weight: 800;
-            text-align: center;
+            display: inline-block;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: white;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: bold;
             margin-bottom: 20px;
         }
 
         .ai-details {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 15px;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
             margin-top: 20px;
         }
 
         .ai-detail-item {
-            background: rgba(255,255,255,0.1);
+            background: rgba(255, 255, 255, 0.2);
             padding: 15px;
-            border-radius: 15px;
+            border-radius: var(--border-radius);
+            backdrop-filter: blur(10px);
+        }
+
+        .ai-detail-item i {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+
+        .ai-warning {
+            color: #ffd700;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+
+        .plagiarism-check {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: var(--border-radius);
+            margin-top: 20px;
+        }
+
+        /* Forms */
+        .auth-form {
+            max-width: 500px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+        }
+
+        .form-title {
             text-align: center;
+            margin-bottom: 30px;
+            color: var(--dark-color);
+            font-size: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #e9ecef;
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(76, 201, 240, 0.2);
+        }
+
+        .user-type-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .user-type-card {
+            padding: 20px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: var(--border-radius);
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .user-type-card.selected {
+            border-color: var(--primary-color);
+            background: linear-gradient(135deg, rgba(67, 97, 238, 0.1), rgba(76, 201, 240, 0.1));
+        }
+
+        .user-type-card i {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+            color: var(--primary-color);
+        }
+
+        .form-footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #6c757d;
+        }
+
+        .form-footer a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 600;
         }
 
         /* Modal */
@@ -613,11 +870,12 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.8);
+            background: rgba(0, 0, 0, 0.8);
             backdrop-filter: blur(5px);
             z-index: 2000;
-            align-items: center;
             justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.3s ease;
         }
 
         .modal.active {
@@ -626,57 +884,73 @@
 
         .modal-content {
             background: white;
-            border-radius: 40px;
+            border-radius: var(--border-radius);
             width: 90%;
-            max-width: 500px;
+            max-width: 600px;
             max-height: 90vh;
             overflow-y: auto;
-            padding: 40px;
-            animation: modalPop 0.3s ease;
+            animation: slideUp 0.3s ease;
         }
 
-        @keyframes modalPop {
-            from { transform: scale(0.9); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
         }
 
-        .modal-large {
-            max-width: 900px;
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 25px 30px;
+            border-bottom: 1px solid #e9ecef;
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 1;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            color: var(--dark-color);
+            font-weight: 700;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #6c757d;
+            transition: var(--transition);
+        }
+
+        .modal-close:hover {
+            color: var(--danger-color);
+        }
+
+        .modal-body {
+            padding: 30px;
         }
 
         /* Loading */
         .loading {
             display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(255,255,255,0.9);
-            z-index: 3000;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
+            text-align: center;
+            padding: 40px;
         }
 
         .loading.active {
-            display: flex;
+            display: block;
         }
 
         .spinner {
-            width: 60px;
-            height: 60px;
+            width: 50px;
+            height: 50px;
             border: 5px solid #f3f3f3;
-            border-top: 5px solid var(--primary);
+            border-top: 5px solid var(--primary-color);
             border-radius: 50%;
             animation: spin 1s linear infinite;
-        }
-
-        .loading-text {
-            margin-top: 20px;
-            font-size: 1.2rem;
-            color: var(--primary);
-            font-weight: 600;
+            margin: 0 auto 20px;
         }
 
         @keyframes spin {
@@ -686,24 +960,27 @@
 
         /* Footer */
         footer {
-            margin-top: 50px;
-            background: white;
-            border-radius: 50px 50px 30px 30px;
-            padding: 50px 40px 30px;
-            box-shadow: var(--shadow);
+            background: var(--dark-color);
+            color: white;
+            padding: 60px 0 30px;
         }
 
         .footer-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 40px;
-            margin-bottom: 30px;
+            margin-bottom: 40px;
         }
 
         .footer-section h3 {
-            color: var(--primary);
-            margin-bottom: 20px;
             font-size: 1.3rem;
+            margin-bottom: 20px;
+            color: var(--accent-color);
+        }
+
+        .footer-section p {
+            color: #adb5bd;
+            margin-bottom: 20px;
         }
 
         .footer-links {
@@ -711,189 +988,325 @@
         }
 
         .footer-links li {
-            margin-bottom: 12px;
+            margin-bottom: 10px;
         }
 
         .footer-links a {
-            color: #666;
+            color: #adb5bd;
             text-decoration: none;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            transition: var(--transition);
         }
 
         .footer-links a:hover {
-            color: var(--primary);
-            transform: translateX(5px);
+            color: white;
+            padding-left: 5px;
         }
 
         .footer-bottom {
             text-align: center;
             padding-top: 30px;
-            border-top: 2px solid #eee;
-            color: #666;
+            border-top: 1px solid #495057;
+            color: #6c757d;
+            font-size: 0.9rem;
         }
 
         /* Responsive */
         @media (max-width: 768px) {
             .header-content {
                 flex-direction: column;
-                text-align: center;
+                gap: 15px;
             }
             
             nav ul {
                 flex-wrap: wrap;
                 justify-content: center;
+                gap: 15px;
             }
             
             .hero h1 {
-                font-size: 2.5rem;
-            }
-            
-            .hero-stats {
-                flex-direction: column;
-                gap: 20px;
+                font-size: 2.2rem;
             }
             
             .articles-grid {
                 grid-template-columns: 1fr;
             }
             
-            .article-header {
+            .user-type-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .auth-form {
+                padding: 25px;
+            }
+            
+            .search-container {
                 flex-direction: column;
             }
+            
+            .article-detail-actions {
+                flex-direction: column;
+            }
+        }
+
+        /* Access Restricted */
+        .access-restricted {
+            text-align: center;
+            padding: 60px 20px;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+        }
+
+        .access-restricted i {
+            font-size: 4rem;
+            color: var(--danger-color);
+            margin-bottom: 20px;
+        }
+
+        .access-restricted h2 {
+            margin-bottom: 20px;
+            color: var(--dark-color);
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: var(--transition);
+            z-index: 3000;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast-success {
+            border-left: 4px solid var(--success-color);
+        }
+
+        .toast-error {
+            border-left: 4px solid var(--danger-color);
+        }
+
+        .toast-info {
+            border-left: 4px solid var(--accent-color);
+        }
+
+        /* No Results */
+        .no-results {
+            text-align: center;
+            padding: 60px 20px;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            grid-column: 1 / -1;
+        }
+
+        .no-results i {
+            font-size: 4rem;
+            color: #6c757d;
+            margin-bottom: 20px;
+        }
+
+        /* Reply Form */
+        .reply-form {
+            margin-left: 40px;
+            margin-top: 15px;
+            padding: 15px;
+            background: white;
+            border-radius: var(--border-radius);
+            border: 1px solid #e9ecef;
+        }
+
+        .nested-comments {
+            margin-left: 40px;
+            margin-top: 15px;
+        }
+
+        .comment-card.reply {
+            border-left-color: var(--accent-color);
+            background: white;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Header avec nouveau logo -->
-        <header>
-            <div class="header-content">
-                <div class="logo">
-                    <div class="logo-icon">
-                        <i class="fas fa-comment-dots"></i>
-                    </div>
-                    <div>
-                        <span class="logo-text">Speech</span>
-                        <span class="logo-badge">BETA</span>
-                    </div>
-                </div>
+    <!-- Toast Notification -->
+    <div id="toast" class="toast"></div>
 
+    <!-- Loading Overlay -->
+    <div id="loading" class="loading">
+        <div class="spinner"></div>
+        <p>Chargement en cours...</p>
+    </div>
+
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <a href="#" class="logo" onclick="showPage('home')">
+                    <i class="fas fa-comment-alt"></i>
+                    <span>Speech</span>
+                </a>
                 <nav>
                     <ul>
-                        <li><a href="#" onclick="showPage('home')" class="nav-link"><i class="fas fa-home"></i> Accueil</a></li>
-                        <li><a href="#" onclick="showPage('articles')" class="nav-link"><i class="fas fa-book-open"></i> Articles</a></li>
-                        <li><a href="#" onclick="showPage('publish')" class="nav-link"><i class="fas fa-pen-alt"></i> Publier</a></li>
-                        <li><a href="#" onclick="showPage('profile')" class="nav-link"><i class="fas fa-user"></i> Profil</a></li>
+                        <li><a href="#" onclick="showPage('home')">Accueil</a></li>
+                        <li><a href="#" onclick="showPage('articles')">Articles</a></li>
+                        <li><a href="#" onclick="showPage('publish')">Publier</a></li>
+                        <li><a href="#" onclick="showPage('profile')">Profil</a></li>
                     </ul>
                 </nav>
-
-                <div class="theme-switcher">
-                    <div class="theme-btn dark" onclick="changeTheme('dark')"></div>
-                    <div class="theme-btn light" onclick="changeTheme('light')"></div>
-                    <div class="theme-btn blue" onclick="changeTheme('blue')"></div>
-                    <div class="theme-btn purple" onclick="changeTheme('purple')"></div>
-                    <div class="theme-btn green" onclick="changeTheme('green')"></div>
+                <div class="user-info" id="userInfo">
+                    <!-- Dynamic content -->
                 </div>
-
-                <div class="user-info" id="userInfo"></div>
             </div>
-        </header>
+        </div>
+    </header>
 
-        <!-- Main Content -->
-        <main class="main-content">
-            <!-- Loading -->
-            <div id="loading" class="loading">
-                <div class="spinner"></div>
-                <div class="loading-text" id="loadingText">Chargement en cours...</div>
-            </div>
-
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
             <!-- Home Page -->
             <div id="home" class="page active">
                 <div class="hero">
                     <div class="hero-content">
-                        <h1>Speech</h1>
-                        <p>La première plateforme académique intelligente</p>
+                        <h1>Partagez vos connaissances académiques</h1>
+                        <p>Une plateforme dédiée aux élèves, étudiants, professeurs et chercheurs pour publier, partager et valoriser leurs travaux.</p>
                         <button class="btn btn-primary" onclick="showPage('articles')">
-                            <i class="fas fa-rocket"></i> Explorer maintenant
+                            <i class="fas fa-book-open"></i>
+                            Explorer les articles
                         </button>
-                        
-                        <div class="hero-stats">
-                            <div class="hero-stat">
-                                <div class="hero-stat-value" id="totalArticles">0</div>
-                                <div class="hero-stat-label">Articles</div>
-                            </div>
-                            <div class="hero-stat">
-                                <div class="hero-stat-value" id="totalUsers">0</div>
-                                <div class="hero-stat-label">Membres</div>
-                            </div>
-                            <div class="hero-stat">
-                                <div class="hero-stat-value" id="totalDownloads">0</div>
-                                <div class="hero-stat-label">Téléchargements</div>
-                            </div>
-                        </div>
                     </div>
                 </div>
                 
-                <h2>Articles populaires</h2>
-                <div class="articles-grid" id="popularArticles"></div>
+                <h2>Articles les plus populaires</h2>
+                <div class="articles-grid" id="popularArticles">
+                    <!-- Articles will be loaded here -->
+                </div>
             </div>
 
             <!-- Articles Page -->
             <div id="articles" class="page">
-                <h2>Tous les articles</h2>
-                <div class="articles-grid" id="allArticles"></div>
+                <h1>Tous les articles</h1>
+                <p>Découvrez les publications de notre communauté académique</p>
+                
+                <!-- Search Bar -->
+                <div class="search-container">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="searchInput" placeholder="Rechercher par titre, auteur ou contenu..." oninput="searchArticles()">
+                    </div>
+                    <div class="search-filters">
+                        <select id="categoryFilter" onchange="searchArticles()">
+                            <option value="">Toutes les catégories</option>
+                            <option value="education">Éducation</option>
+                            <option value="science">Science</option>
+                            <option value="technology">Technologie</option>
+                            <option value="literature">Littérature</option>
+                            <option value="history">Histoire</option>
+                            <option value="philosophy">Philosophie</option>
+                            <option value="research">Recherche</option>
+                            <option value="tutorial">Tutoriel</option>
+                        </select>
+                        <select id="sortFilter" onchange="searchArticles()">
+                            <option value="newest">Plus récents</option>
+                            <option value="popular">Plus populaires</option>
+                            <option value="mostLiked">Les plus aimés</option>
+                            <option value="mostDownloaded">Les plus téléchargés</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="articles-grid" id="allArticles">
+                    <!-- Articles will be loaded here -->
+                </div>
             </div>
 
             <!-- Publish Page -->
             <div id="publish" class="page">
-                <div id="publishRestricted" class="access-restricted">
+                <div class="access-restricted" id="publishRestricted">
                     <i class="fas fa-lock"></i>
                     <h2>Accès restreint</h2>
-                    <p>Connectez-vous pour publier un article</p>
-                    <button class="btn btn-primary" onclick="showModal('loginModal')">Se connecter</button>
+                    <p>Vous devez être connecté pour publier un article.</p>
+                    <button class="btn btn-primary" onclick="showModal('loginModal')">
+                        <i class="fas fa-sign-in-alt"></i>
+                        Se connecter
+                    </button>
                 </div>
-
+                
                 <div id="publishForm" style="display: none;">
-                    <h2>Publier un article</h2>
-                    <div class="form-container">
+                    <h1>Publier un nouvel article</h1>
+                    <p>Votre article sera vérifié par notre IA avant publication</p>
+                    
+                    <div class="auth-form">
                         <div class="form-group">
-                            <label><i class="fas fa-heading"></i> Titre</label>
-                            <input type="text" id="articleTitle" class="form-control" placeholder="Titre accrocheur">
+                            <label class="form-label">Titre de l'article</label>
+                            <input type="text" id="articleTitle" class="form-input" placeholder="Entrez un titre percutant">
                         </div>
+                        
                         <div class="form-group">
-                            <label><i class="fas fa-tags"></i> Catégorie</label>
-                            <select id="articleCategory" class="form-control">
-                                <option value="education">📚 Éducation</option>
-                                <option value="science">🔬 Science</option>
-                                <option value="technology">💻 Technologie</option>
-                                <option value="literature">📖 Littérature</option>
-                                <option value="history">🏛️ Histoire</option>
-                                <option value="philosophy">🤔 Philosophie</option>
-                                <option value="mathematics">📐 Mathématiques</option>
-                                <option value="physics">⚛️ Physique</option>
-                                <option value="chemistry">🧪 Chimie</option>
-                                <option value="biology">🧬 Biologie</option>
+                            <label class="form-label">Catégorie</label>
+                            <select id="articleCategory" class="form-input">
+                                <option value="education">Éducation</option>
+                                <option value="science">Science</option>
+                                <option value="technology">Technologie</option>
+                                <option value="literature">Littérature</option>
+                                <option value="history">Histoire</option>
+                                <option value="philosophy">Philosophie</option>
+                                <option value="research">Recherche</option>
+                                <option value="tutorial">Tutoriel</option>
                             </select>
                         </div>
+                        
                         <div class="form-group">
-                            <label><i class="fas fa-file-alt"></i> Contenu</label>
-                            <textarea id="articleContent" class="form-control" rows="10" placeholder="Écrivez votre article..."></textarea>
+                            <label class="form-label">Contenu de l'article</label>
+                            <textarea id="articleContent" class="form-input" placeholder="Rédigez votre article ici..." rows="8"></textarea>
+                        </div>
+
+                        <!-- File Upload Section -->
+                        <div class="form-group">
+                            <label class="form-label">Fichier joint (PDF, DOC, Excel)</label>
+                            <div class="file-upload-area" onclick="document.getElementById('fileInput').click()" id="fileUploadArea">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <p>Cliquez ou glissez-déposez votre fichier ici</p>
+                                <div class="file-types">
+                                    <span class="file-type-badge"><i class="fas fa-file-pdf"></i> PDF</span>
+                                    <span class="file-type-badge"><i class="fas fa-file-word"></i> DOC</span>
+                                    <span class="file-type-badge"><i class="fas fa-file-excel"></i> Excel</span>
+                                </div>
+                                <div id="fileName" class="file-name"></div>
+                            </div>
+                            <input type="file" id="fileInput" style="display: none;" accept=".pdf,.doc,.docx,.xls,.xlsx" onchange="handleFileSelect(event)">
                         </div>
                         
-                        <div id="aiCheckResult" style="display: none;" class="ai-check-enhanced">
-                            <h3><i class="fas fa-robot"></i> Analyse IA approfondie</h3>
-                            <div id="aiScore" class="ai-score"></div>
-                            <div id="aiDetails" class="ai-details"></div>
+                        <!-- AI Analysis Result -->
+                        <div id="aiCheckResult" style="display: none;">
+                            <div class="form-group">
+                                <label class="form-label">Analyse par Intelligence Artificielle</label>
+                                <div class="ai-analysis" id="aiAnalysisContainer">
+                                    <div id="aiCheckText"></div>
+                                </div>
+                            </div>
                         </div>
                         
-                        <button class="btn btn-primary" onclick="checkArticleWithAI()" style="width: 100%; margin-bottom: 10px;">
-                            <i class="fas fa-microchip"></i> Analyse IA approfondie
+                        <button class="btn btn-primary" onclick="checkArticleWithAI()" style="width: 100%; margin-bottom: 15px;">
+                            <i class="fas fa-robot"></i>
+                            Analyser avec l'IA
                         </button>
-                        <button id="publishBtn" class="btn btn-primary" onclick="publishArticle()" style="width: 100%; display: none;">
-                            <i class="fas fa-paper-plane"></i> Publier l'article
+                        
+                        <button class="btn btn-primary" id="publishBtn" onclick="publishArticle()" style="width: 100%; display: none;">
+                            <i class="fas fa-paper-plane"></i>
+                            Publier l'article
                         </button>
                     </div>
                 </div>
@@ -901,84 +1314,46 @@
 
             <!-- Profile Page -->
             <div id="profile" class="page">
-                <div id="profileRestricted" class="access-restricted">
+                <div class="access-restricted" id="profileRestricted">
                     <i class="fas fa-user-lock"></i>
-                    <h2>Profil privé</h2>
-                    <p>Connectez-vous pour accéder à votre profil</p>
-                    <button class="btn btn-primary" onclick="showModal('loginModal')">Se connecter</button>
+                    <h2>Profil non accessible</h2>
+                    <p>Connectez-vous pour accéder à votre profil.</p>
+                    <button class="btn btn-primary" onclick="showModal('loginModal')">
+                        <i class="fas fa-sign-in-alt"></i>
+                        Se connecter
+                    </button>
                 </div>
-
-                <div id="profileContent" style="display: none;"></div>
-            </div>
-        </main>
-
-        <!-- Footer -->
-        <footer>
-            <div class="footer-grid">
-                <div class="footer-section">
-                    <h3><i class="fas fa-comments"></i> Speech</h3>
-                    <p>La plateforme académique nouvelle génération</p>
-                    <p><i class="fas fa-envelope"></i> xtronicsconcepts@gmail.com</p>
-                </div>
-                <div class="footer-section">
-                    <h3>Navigation</h3>
-                    <ul class="footer-links">
-                        <li><a href="#" onclick="showPage('home')"><i class="fas fa-home"></i> Accueil</a></li>
-                        <li><a href="#" onclick="showPage('articles')"><i class="fas fa-book-open"></i> Articles</a></li>
-                        <li><a href="#" onclick="showPage('publish')"><i class="fas fa-pen-alt"></i> Publier</a></li>
-                        <li><a href="#" onclick="showPage('profile')"><i class="fas fa-user"></i> Profil</a></li>
-                    </ul>
-                </div>
-                <div class="footer-section">
-                    <h3>Légal</h3>
-                    <ul class="footer-links">
-                        <li><a href="#" onclick="showModal('privacyModal')"><i class="fas fa-shield-alt"></i> Confidentialité</a></li>
-                        <li><a href="#" onclick="showModal('licenseModal')"><i class="fas fa-file-contract"></i> Licence</a></li>
-                        <li><a href="mailto:xtronicsconcepts@gmail.com"><i class="fas fa-headset"></i> Contact</a></li>
-                    </ul>
-                </div>
-                <div class="footer-section">
-                    <h3>Suivez-nous</h3>
-                    <ul class="footer-links">
-                        <li><a href="#"><i class="fab fa-twitter"></i> Twitter</a></li>
-                        <li><a href="#"><i class="fab fa-linkedin"></i> LinkedIn</a></li>
-                        <li><a href="#"><i class="fab fa-github"></i> GitHub</a></li>
-                    </ul>
+                
+                <div id="profileContent" style="display: none;">
+                    <!-- Profile content will be loaded here -->
                 </div>
             </div>
-            <div class="footer-bottom">
-                <p>&copy; 2024 Speech - Développé avec ❤️ par Xtronics Concepts</p>
-                <p style="margin-top: 10px; font-size: 0.8rem;">Version 2.0 - L'IA au service de l'éducation</p>
-            </div>
-        </footer>
-    </div>
+        </div>
+    </main>
 
     <!-- Login Modal -->
     <div id="loginModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2><i class="fas fa-sign-in-alt"></i> Connexion</h2>
-                <button class="close-btn" onclick="closeModal('loginModal')">&times;</button>
+                <h2 class="modal-title">Connexion</h2>
+                <button class="modal-close" onclick="closeModal('loginModal')">&times;</button>
             </div>
-            <div style="padding: 20px 0;">
-                <button class="btn btn-google" onclick="loginWithGoogle()" style="margin-bottom: 20px;">
-                    <i class="fab fa-google"></i> Continuer avec Google
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Adresse email</label>
+                    <input type="email" id="loginEmail" class="form-input" placeholder="votre@email.com">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Mot de passe</label>
+                    <input type="password" id="loginPassword" class="form-input" placeholder="Votre mot de passe">
+                </div>
+                <button class="btn btn-primary" onclick="login()" style="width: 100%;">
+                    <i class="fas fa-sign-in-alt"></i>
+                    Se connecter
                 </button>
-                
-                <div style="text-align: center; margin: 20px 0; color: #999;">ou</div>
-                
-                <div class="form-group">
-                    <label>Email</label>
-                    <input type="email" id="loginEmail" class="form-control">
+                <div class="form-footer">
+                    <p>Pas encore de compte ? <a href="#" onclick="closeModal('loginModal'); showModal('registerModal')">S'inscrire</a></p>
                 </div>
-                <div class="form-group">
-                    <label>Mot de passe</label>
-                    <input type="password" id="loginPassword" class="form-control">
-                </div>
-                <button class="btn btn-primary" onclick="login()" style="width: 100%;">Se connecter</button>
-                <p style="text-align: center; margin-top: 15px;">
-                    Pas encore de compte? <a href="#" onclick="closeModal('loginModal'); showModal('registerModal')">S'inscrire</a>
-                </p>
             </div>
         </div>
     </div>
@@ -987,179 +1362,298 @@
     <div id="registerModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2><i class="fas fa-user-plus"></i> Inscription</h2>
-                <button class="close-btn" onclick="closeModal('registerModal')">&times;</button>
+                <h2 class="modal-title">Inscription</h2>
+                <button class="modal-close" onclick="closeModal('registerModal')">&times;</button>
             </div>
-            <div style="padding: 20px 0;">
-                <button class="btn btn-google" onclick="loginWithGoogle()" style="margin-bottom: 20px;">
-                    <i class="fab fa-google"></i> S'inscrire avec Google
-                </button>
-                
-                <div style="text-align: center; margin: 20px 0; color: #999;">ou</div>
-                
+            <div class="modal-body">
                 <div class="form-group">
-                    <label>Nom complet</label>
-                    <input type="text" id="registerName" class="form-control">
+                    <label class="form-label">Nom complet</label>
+                    <input type="text" id="registerName" class="form-input" placeholder="Votre nom complet">
                 </div>
                 <div class="form-group">
-                    <label>Email</label>
-                    <input type="email" id="registerEmail" class="form-control">
+                    <label class="form-label">Adresse email</label>
+                    <input type="email" id="registerEmail" class="form-input" placeholder="votre@email.com">
                 </div>
                 <div class="form-group">
-                    <label>Mot de passe</label>
-                    <input type="password" id="registerPassword" class="form-control">
+                    <label class="form-label">Mot de passe</label>
+                    <input type="password" id="registerPassword" class="form-input" placeholder="Créez un mot de passe sécurisé">
                 </div>
                 <div class="form-group">
-                    <label>Email de contact (public)</label>
-                    <input type="email" id="registerContactEmail" class="form-control">
-                </div>
-                <div class="form-group">
-                    <label>Vous êtes:</label>
+                    <label class="form-label">Vous êtes :</label>
                     <div class="user-type-grid">
-                        <div class="user-type-card" onclick="selectUserType('student')">
+                        <div class="user-type-card" data-type="student" onclick="selectUserType('student')">
                             <i class="fas fa-user-graduate"></i>
-                            <p>Étudiant</p>
+                            <p>Élève/Étudiant</p>
                         </div>
-                        <div class="user-type-card" onclick="selectUserType('teacher')">
+                        <div class="user-type-card" data-type="teacher" onclick="selectUserType('teacher')">
                             <i class="fas fa-chalkboard-teacher"></i>
                             <p>Professeur</p>
                         </div>
-                        <div class="user-type-card" onclick="selectUserType('researcher')">
+                        <div class="user-type-card" data-type="consultant" onclick="selectUserType('consultant')">
+                            <i class="fas fa-briefcase"></i>
+                            <p>Consultant</p>
+                        </div>
+                        <div class="user-type-card" data-type="independent" onclick="selectUserType('independent')">
+                            <i class="fas fa-user-tie"></i>
+                            <p>Indépendant</p>
+                        </div>
+                        <div class="user-type-card" data-type="researcher" onclick="selectUserType('researcher')">
                             <i class="fas fa-flask"></i>
                             <p>Chercheur</p>
                         </div>
                     </div>
-                    <input type="hidden" id="selectedUserType">
+                    <input type="hidden" id="selectedUserType" value="">
                 </div>
-                <button class="btn btn-primary" onclick="register()" style="width: 100%;">S'inscrire</button>
+                <div class="form-group">
+                    <label class="form-label">Email de contact (pour les lecteurs)</label>
+                    <input type="email" id="registerContactEmail" class="form-input" placeholder="contact@votredomaine.com">
+                    <small style="color: #6c757d; display: block; margin-top: 5px;">Cet email sera visible pour les lecteurs qui souhaitent vous contacter</small>
+                </div>
+                <button class="btn btn-primary" onclick="register()" style="width: 100%;">
+                    <i class="fas fa-user-plus"></i>
+                    S'inscrire
+                </button>
+                <div class="form-footer">
+                    <p>Déjà un compte ? <a href="#" onclick="closeModal('registerModal'); showModal('loginModal')">Se connecter</a></p>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Article Modal -->
-    <div id="articleModal" class="modal">
-        <div class="modal-content modal-large article-modal">
-            <div class="modal-header">
-                <h2 id="modalArticleTitle"></h2>
-                <button class="close-btn" onclick="closeModal('articleModal')">&times;</button>
-            </div>
-            
-            <div class="article-tabs">
-                <button class="tab-btn active" onclick="switchTab('content')">
-                    <i class="fas fa-file-alt"></i> Article
-                </button>
-                <button class="tab-btn" onclick="switchTab('comments')">
-                    <i class="fas fa-comments"></i> Commentaires
-                </button>
-                <button class="tab-btn" onclick="switchTab('stats')">
-                    <i class="fas fa-chart-bar"></i> Statistiques
-                </button>
-            </div>
-            
-            <div id="tabContent" class="tab-content active">
-                <!-- Contenu de l'article -->
-            </div>
-            
-            <div id="tabComments" class="tab-content">
-                <!-- Commentaires -->
-                <div id="commentsSection"></div>
-            </div>
-            
-            <div id="tabStats" class="tab-content">
-                <!-- Statistiques -->
-            </div>
-            
-            <div style="margin-top: 20px; display: flex; gap: 10px;">
-                <button class="btn btn-primary" onclick="downloadCurrentArticlePDF()">
-                    <i class="fas fa-file-pdf"></i> Télécharger en PDF
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Privacy Modal -->
+    <!-- Privacy Policy Modal -->
     <div id="privacyModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Politique de confidentialité</h2>
-                <button class="close-btn" onclick="closeModal('privacyModal')">&times;</button>
+                <h2 class="modal-title">Politique de confidentialité</h2>
+                <button class="modal-close" onclick="closeModal('privacyModal')">&times;</button>
             </div>
-            <div style="max-height: 400px; overflow-y: auto;">
-                <h3>1. Collecte des données</h3>
-                <p>Nous collectons votre nom, email, et email de contact pour le fonctionnement de la plateforme.</p>
-                <h3>2. Utilisation</h3>
-                <p>Les données sont utilisées pour l'authentification et permettre aux lecteurs de vous contacter.</p>
-                <h3>3. Contact</h3>
-                <p>xtronicsconcepts@gmail.com</p>
+            <div class="modal-body">
+                <h3>1. Collecte des informations</h3>
+                <p>Speech collecte les informations suivantes : nom, adresse email, type d'utilisateur, et email de contact. Ces informations sont nécessaires pour le bon fonctionnement de la plateforme.</p>
+                
+                <h3>2. Utilisation des informations</h3>
+                <p>Les informations collectées sont utilisées pour :</p>
+                <ul>
+                    <li>Authentifier les utilisateurs</li>
+                    <li>Permettre la publication d'articles</li>
+                    <li>Faciliter les contacts entre auteurs et lecteurs</li>
+                    <li>Personnaliser l'expérience utilisateur</li>
+                </ul>
+                
+                <h3>3. Partage des informations</h3>
+                <p>L'email de contact des auteurs est visible par tous les utilisateurs pour permettre la communication. Les autres informations personnelles ne sont pas partagées avec des tiers.</p>
+                
+                <h3>4. Sécurité</h3>
+                <p>Nous utilisons Firebase Authentication et Firestore pour sécuriser vos données. Les mots de passe sont cryptés.</p>
+                
+                <h3>5. Vos droits</h3>
+                <p>Vous pouvez à tout moment demander la suppression de votre compte et de vos données en nous contactant à xtronicsconcepts@gmail.com.</p>
+                
+                <h3>6. Contact</h3>
+                <p>Pour toute question concernant cette politique de confidentialité : xtronicsconcepts@gmail.com</p>
             </div>
         </div>
     </div>
 
-    <!-- License Modal -->
-    <div id="licenseModal" class="modal">
-        <div class="modal-content">
+    <!-- Article Detail Modal -->
+    <div id="articleDetailModal" class="modal">
+        <div class="modal-content article-detail-modal">
             <div class="modal-header">
-                <h2>Licence</h2>
-                <button class="close-btn" onclick="closeModal('licenseModal')">&times;</button>
+                <h2 class="modal-title" id="articleDetailTitle"></h2>
+                <button class="modal-close" onclick="closeModal('articleDetailModal')">&times;</button>
             </div>
-            <div style="max-height: 400px; overflow-y: auto;">
-                <h3>Licence d'utilisation</h3>
-                <p>© 2024 Xtronics Concepts. Tous droits réservés.</p>
-                <p>Les articles restent la propriété de leurs auteurs.</p>
-                <p>Contact: xtronicsconcepts@gmail.com</p>
+            <div class="modal-body" id="articleDetailBody">
+                <!-- Article detail content will be loaded here -->
             </div>
         </div>
     </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-section">
+                    <h3>Speech</h3>
+                    <p>Plateforme de partage d'articles académiques et éducatifs.</p>
+                    <p><i class="fas fa-envelope"></i> xtronicsconcepts@gmail.com</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Navigation</h3>
+                    <ul class="footer-links">
+                        <li><a href="#" onclick="showPage('home')">Accueil</a></li>
+                        <li><a href="#" onclick="showPage('articles')">Articles</a></li>
+                        <li><a href="#" onclick="showPage('publish')">Publier</a></li>
+                        <li><a href="#" onclick="showPage('profile')">Profil</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Légal</h3>
+                    <ul class="footer-links">
+                        <li><a href="#" onclick="showModal('privacyModal')">Politique de confidentialité</a></li>
+                        <li><a href="#" onclick="showModal('licenseModal')">Licence d'utilisation</a></li>
+                        <li><a href="mailto:xtronicsconcepts@gmail.com">Contact</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Speech. Développé par Xtronics Concepts. Tous droits réservés.</p>
+                <p>Ce projet utilise Firebase pour l'authentification et le stockage des données.</p>
+            </div>
+        </div>
+    </footer>
 
     <script>
         // Variables globales
         let currentUser = null;
-        let userTypeSelected = '';
-        let currentArticle = null;
-        let currentArticleId = null;
+        let articles = [];
+        let users = [];
+        let selectedFile = null;
+        let userLikes = new Set();
 
         // Initialisation
-        document.addEventListener('DOMContentLoaded', function() {
-            window.onAuthStateChanged(window.auth, async (user) => {
-                if (user) {
-                    await loadUserData(user.uid);
-                } else {
-                    currentUser = null;
-                    updateUIForUser();
-                }
-            });
-            
-            loadArticles();
-            updateStats();
-            setActiveNavLink('home');
+        document.addEventListener('DOMContentLoaded', async function() {
+            showLoading(true);
+            await initializeApp();
+            showLoading(false);
         });
 
-        // Changer de thème
-        function changeTheme(theme) {
-            document.body.className = `theme-${theme}`;
-            localStorage.setItem('speech-theme', theme);
+        // Initialiser l'application
+        async function initializeApp() {
+            try {
+                // Vérifier si Firebase est chargé
+                if (!window.firebaseAuth || !window.firebaseDb) {
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+
+                // Observer l'état d'authentification
+                window.firebaseFunctions.onAuthStateChanged(window.firebaseAuth, async (user) => {
+                    if (user) {
+                        // Utilisateur connecté
+                        currentUser = await getUserData(user.uid);
+                        await loadUserLikes();
+                        updateUIForLoggedInUser();
+                        showToast('Connexion réussie !', 'success');
+                    } else {
+                        // Utilisateur déconnecté
+                        currentUser = null;
+                        userLikes.clear();
+                        updateUIForLoggedOutUser();
+                    }
+                });
+
+                // Charger les articles
+                await loadArticles();
+                
+            } catch (error) {
+                console.error('Erreur d\'initialisation:', error);
+                showToast('Erreur de connexion au serveur', 'error');
+            }
         }
 
-        // Charger le thème sauvegardé
-        const savedTheme = localStorage.getItem('speech-theme');
-        if (savedTheme) changeTheme(savedTheme);
+        // Charger les likes de l'utilisateur
+        async function loadUserLikes() {
+            if (!currentUser) return;
+            
+            try {
+                const q = window.firebaseFunctions.query(
+                    window.firebaseFunctions.collection(window.firebaseDb, 'userLikes'),
+                    window.firebaseFunctions.where('userId', '==', currentUser.uid)
+                );
+                
+                const querySnapshot = await window.firebaseFunctions.getDocs(q);
+                querySnapshot.forEach(doc => {
+                    userLikes.add(doc.data().articleId);
+                });
+            } catch (error) {
+                console.error('Erreur lors du chargement des likes:', error);
+            }
+        }
 
-        // Navigation active
-        function setActiveNavLink(page) {
-            document.querySelectorAll('.nav-link').forEach(link => {
-                link.classList.remove('active');
-                if (link.textContent.toLowerCase().includes(page)) {
-                    link.classList.add('active');
+        // Obtenir les données utilisateur
+        async function getUserData(userId) {
+            try {
+                const q = window.firebaseFunctions.query(
+                    window.firebaseFunctions.collection(window.firebaseDb, 'users'),
+                    window.firebaseFunctions.where('uid', '==', userId)
+                );
+                
+                const querySnapshot = await window.firebaseFunctions.getDocs(q);
+                
+                if (!querySnapshot.empty) {
+                    const userDoc = querySnapshot.docs[0];
+                    return { id: userDoc.id, ...userDoc.data() };
                 }
-            });
+                return null;
+            } catch (error) {
+                console.error('Erreur lors de la récupération des données utilisateur:', error);
+                return null;
+            }
+        }
+
+        // Mettre à jour l'interface pour un utilisateur connecté
+        function updateUIForLoggedInUser() {
+            // Mettre à jour le header
+            document.getElementById('userInfo').innerHTML = `
+                <div class="user-avatar" onclick="showPage('profile')">
+                    <div class="avatar">${currentUser.name.charAt(0).toUpperCase()}</div>
+                    <span>${currentUser.name}</span>
+                </div>
+                <button class="btn btn-outline" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Déconnexion
+                </button>
+            `;
+
+            // Afficher/masquer les pages selon l'authentification
+            document.getElementById('publishRestricted').style.display = 'none';
+            document.getElementById('publishForm').style.display = 'block';
+            document.getElementById('profileRestricted').style.display = 'none';
+            document.getElementById('profileContent').style.display = 'block';
+            
+            // Charger le profil
+            loadProfile();
+        }
+
+        // Mettre à jour l'interface pour un utilisateur déconnecté
+        function updateUIForLoggedOutUser() {
+            // Mettre à jour le header
+            document.getElementById('userInfo').innerHTML = `
+                <div class="auth-buttons">
+                    <button class="btn btn-outline" onclick="showModal('loginModal')">
+                        <i class="fas fa-sign-in-alt"></i>
+                        Connexion
+                    </button>
+                    <button class="btn btn-primary" onclick="showModal('registerModal')">
+                        <i class="fas fa-user-plus"></i>
+                        Inscription
+                    </button>
+                </div>
+            `;
+
+            // Afficher/masquer les pages selon l'authentification
+            document.getElementById('publishRestricted').style.display = 'block';
+            document.getElementById('publishForm').style.display = 'none';
+            document.getElementById('profileRestricted').style.display = 'block';
+            document.getElementById('profileContent').style.display = 'none';
+            
+            // Retourner à la page d'accueil si sur une page protégée
+            if (document.getElementById('publish').classList.contains('active') || 
+                document.getElementById('profile').classList.contains('active')) {
+                showPage('home');
+            }
         }
 
         // Afficher une page
         function showPage(pageId) {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.getElementById(pageId).classList.add('active');
-            setActiveNavLink(pageId);
+            // Masquer toutes les pages
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
             
+            // Afficher la page demandée
+            document.getElementById(pageId).classList.add('active');
+            
+            // Charger les données si nécessaire
             if (pageId === 'articles' || pageId === 'home') {
                 loadArticles();
             } else if (pageId === 'profile' && currentUser) {
@@ -1167,92 +1661,22 @@
             }
         }
 
-        // Charger les données utilisateur
-        async function loadUserData(uid) {
-            try {
-                const q = window.query(window.collection(window.db, 'users'), window.where('uid', '==', uid));
-                const querySnapshot = await window.getDocs(q);
-                
-                if (!querySnapshot.empty) {
-                    currentUser = { id: querySnapshot.docs[0].id, ...querySnapshot.docs[0].data() };
-                }
-                updateUIForUser();
-            } catch (error) {
-                console.error('Erreur:', error);
-            }
+        // Afficher un modal
+        function showModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
         }
 
-        // Mettre à jour l'UI
-        function updateUIForUser() {
-            const userInfo = document.getElementById('userInfo');
-            
-            if (currentUser) {
-                userInfo.innerHTML = `
-                    <div class="avatar" style="width: 45px; height: 45px; background: var(--gradient);">${currentUser.name.charAt(0).toUpperCase()}</div>
-                    <span style="font-weight: 600;">${currentUser.name}</span>
-                    <button class="btn btn-outline" onclick="logout()"><i class="fas fa-sign-out-alt"></i></button>
-                `;
-                
-                document.getElementById('publishRestricted').style.display = 'none';
-                document.getElementById('publishForm').style.display = 'block';
-                document.getElementById('profileRestricted').style.display = 'none';
-                document.getElementById('profileContent').style.display = 'block';
-            } else {
-                userInfo.innerHTML = `
-                    <button class="btn btn-outline" onclick="showModal('loginModal')">Connexion</button>
-                    <button class="btn btn-primary" onclick="showModal('registerModal')">Inscription</button>
-                `;
-                
-                document.getElementById('publishRestricted').style.display = 'block';
-                document.getElementById('publishForm').style.display = 'none';
-                document.getElementById('profileRestricted').style.display = 'block';
-                document.getElementById('profileContent').style.display = 'none';
-            }
+        // Fermer un modal
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
         }
 
-        // Connexion avec Google
-        async function loginWithGoogle() {
-            try {
-                showLoading(true, 'Connexion avec Google...');
-                const result = await window.signInWithPopup(window.auth, window.googleProvider);
-                const user = result.user;
-                
-                // Vérifier si l'utilisateur existe déjà
-                const q = window.query(window.collection(window.db, 'users'), window.where('uid', '==', user.uid));
-                const querySnapshot = await window.getDocs(q);
-                
-                if (querySnapshot.empty) {
-                    // Nouvel utilisateur
-                    const userData = {
-                        uid: user.uid,
-                        name: user.displayName || user.email.split('@')[0],
-                        email: user.email,
-                        contactEmail: user.email,
-                        userType: 'student',
-                        articlesCount: 0,
-                        downloadsCount: 0,
-                        reputation: 0,
-                        createdAt: new Date().toISOString()
-                    };
-                    
-                    await window.addDoc(window.collection(window.db, 'users'), userData);
-                }
-                
-                closeModal('loginModal');
-                closeModal('registerModal');
-                showToast('Connexion réussie avec Google !');
-            } catch (error) {
-                console.error('Erreur Google:', error);
-                alert('Erreur: ' + error.message);
-            } finally {
-                showLoading(false);
-            }
-        }
-
-        // Sélection du type d'utilisateur
+        // Sélectionner un type d'utilisateur
         function selectUserType(type) {
-            document.querySelectorAll('.user-type-card').forEach(c => c.classList.remove('selected'));
-            event.currentTarget.classList.add('selected');
+            document.querySelectorAll('.user-type-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            document.querySelector(`.user-type-card[data-type="${type}"]`).classList.add('selected');
             document.getElementById('selectedUserType').value = type;
         }
 
@@ -1261,36 +1685,56 @@
             const name = document.getElementById('registerName').value;
             const email = document.getElementById('registerEmail').value;
             const password = document.getElementById('registerPassword').value;
-            const contactEmail = document.getElementById('registerContactEmail').value;
             const userType = document.getElementById('selectedUserType').value;
+            const contactEmail = document.getElementById('registerContactEmail').value;
 
-            if (!name || !email || !password || !contactEmail || !userType) {
-                alert('Veuillez remplir tous les champs');
+            if (!name || !email || !password || !userType || !contactEmail) {
+                showToast('Veuillez remplir tous les champs', 'error');
                 return;
             }
 
-            showLoading(true, 'Création du compte...');
+            if (!validateEmail(email)) {
+                showToast('Adresse email invalide', 'error');
+                return;
+            }
+
+            showLoading(true);
 
             try {
-                const userCredential = await window.createUserWithEmailAndPassword(window.auth, email, password);
+                // Créer l'utilisateur avec Firebase Auth
+                const userCredential = await window.firebaseFunctions.createUserWithEmailAndPassword(
+                    window.firebaseAuth, 
+                    email, 
+                    password
+                );
+                
                 const user = userCredential.user;
 
-                await window.addDoc(window.collection(window.db, 'users'), {
+                // Enregistrer les données supplémentaires dans Firestore
+                const userData = {
                     uid: user.uid,
                     name: name,
                     email: email,
-                    contactEmail: contactEmail,
                     userType: userType,
+                    contactEmail: contactEmail,
+                    avatar: name.charAt(0).toUpperCase(),
                     articlesCount: 0,
                     downloadsCount: 0,
                     reputation: 0,
                     createdAt: new Date().toISOString()
-                });
+                };
+
+                await window.firebaseFunctions.addDoc(
+                    window.firebaseFunctions.collection(window.firebaseDb, 'users'),
+                    userData
+                );
 
                 closeModal('registerModal');
-                showToast('Inscription réussie !');
+                showToast('Inscription réussie !', 'success');
+
             } catch (error) {
-                alert('Erreur: ' + error.message);
+                console.error('Erreur d\'inscription:', error);
+                showToast(getFirebaseErrorMessage(error.code), 'error');
             } finally {
                 showLoading(false);
             }
@@ -1301,13 +1745,25 @@
             const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
 
+            if (!email || !password) {
+                showToast('Veuillez remplir tous les champs', 'error');
+                return;
+            }
+
+            showLoading(true);
+
             try {
-                showLoading(true, 'Connexion...');
-                await window.signInWithEmailAndPassword(window.auth, email, password);
+                await window.firebaseFunctions.signInWithEmailAndPassword(
+                    window.firebaseAuth,
+                    email,
+                    password
+                );
+                
                 closeModal('loginModal');
-                showToast('Connexion réussie !');
+                
             } catch (error) {
-                alert('Erreur: ' + error.message);
+                console.error('Erreur de connexion:', error);
+                showToast(getFirebaseErrorMessage(error.code), 'error');
             } finally {
                 showLoading(false);
             }
@@ -1315,478 +1771,871 @@
 
         // Déconnexion
         async function logout() {
-            await window.signOut(window.auth);
-            showToast('Déconnexion réussie');
-        }
-
-        // Afficher un modal
-        function showModal(modalId) {
-            document.getElementById(modalId).classList.add('active');
-        }
-
-        function closeModal(modalId) {
-            document.getElementById(modalId).classList.remove('active');
-        }
-
-        // Loading
-        function showLoading(show, text = 'Chargement...') {
-            document.getElementById('loading').classList.toggle('active', show);
-            document.getElementById('loadingText').textContent = text;
-        }
-
-        // Toast
-        function showToast(message) {
-            // Créer un toast si pas existant
-            let toast = document.getElementById('toast');
-            if (!toast) {
-                toast = document.createElement('div');
-                toast.id = 'toast';
-                toast.style.cssText = `
-                    position: fixed;
-                    bottom: 20px;
-                    right: 20px;
-                    background: white;
-                    color: #333;
-                    padding: 15px 25px;
-                    border-radius: 50px;
-                    box-shadow: var(--shadow);
-                    z-index: 4000;
-                    animation: slideIn 0.3s ease;
-                    border-left: 4px solid var(--success);
-                `;
-                document.body.appendChild(toast);
-            }
-            
-            toast.textContent = message;
-            toast.style.display = 'block';
-            
-            setTimeout(() => {
-                toast.style.display = 'none';
-            }, 3000);
-        }
-
-        // Mettre à jour les statistiques globales
-        async function updateStats() {
             try {
-                const articlesSnapshot = await window.getDocs(window.collection(window.db, 'articles'));
-                const usersSnapshot = await window.getDocs(window.collection(window.db, 'users'));
-                
-                let totalDownloads = 0;
-                articlesSnapshot.forEach(doc => {
-                    totalDownloads += doc.data().downloads || 0;
-                });
-                
-                document.getElementById('totalArticles').textContent = articlesSnapshot.size;
-                document.getElementById('totalUsers').textContent = usersSnapshot.size;
-                document.getElementById('totalDownloads').textContent = totalDownloads;
+                await window.firebaseFunctions.signOut(window.firebaseAuth);
+                showToast('Déconnexion réussie', 'info');
             } catch (error) {
-                console.error('Erreur stats:', error);
+                console.error('Erreur de déconnexion:', error);
+                showToast('Erreur lors de la déconnexion', 'error');
+            }
+        }
+
+        // Gérer la sélection de fichier
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const fileType = file.name.split('.').pop().toLowerCase();
+                if (!['pdf', 'doc', 'docx', 'xls', 'xlsx'].includes(fileType)) {
+                    showToast('Type de fichier non autorisé', 'error');
+                    return;
+                }
+                
+                if (file.size > 10 * 1024 * 1024) { // 10MB limit
+                    showToast('Le fichier ne doit pas dépasser 10 Mo', 'error');
+                    return;
+                }
+                
+                selectedFile = file;
+                document.getElementById('fileName').textContent = `Fichier sélectionné: ${file.name}`;
+                document.getElementById('fileUploadArea').style.borderColor = 'var(--success-color)';
             }
         }
 
         // Charger les articles
         async function loadArticles() {
-            showLoading(true, 'Chargement des articles...');
+            showLoading(true);
             
             try {
-                const q = window.query(window.collection(window.db, 'articles'), window.orderBy('createdAt', 'desc'));
-                const querySnapshot = await window.getDocs(q);
+                const q = window.firebaseFunctions.query(
+                    window.firebaseFunctions.collection(window.firebaseDb, 'articles'),
+                    window.firebaseFunctions.orderBy('createdAt', 'desc')
+                );
                 
-                let articles = [];
+                const querySnapshot = await window.firebaseFunctions.getDocs(q);
+                articles = [];
+                
                 querySnapshot.forEach(doc => {
                     articles.push({ id: doc.id, ...doc.data() });
                 });
 
-                // Articles populaires
-                const popular = [...articles].sort((a,b) => (b.views||0) - (a.views||0)).slice(0, 6);
-                document.getElementById('popularArticles').innerHTML = popular.map(a => createArticleCard(a)).join('');
-                document.getElementById('allArticles').innerHTML = articles.map(a => createArticleCard(a)).join('');
+                // Afficher les articles populaires (par likes et téléchargements)
+                const popularArticles = [...articles].sort((a, b) => {
+                    const aScore = (a.likes || 0) + (a.downloads || 0) * 2;
+                    const bScore = (b.likes || 0) + (b.downloads || 0) * 2;
+                    return bScore - aScore;
+                }).slice(0, 6);
+                
+                document.getElementById('popularArticles').innerHTML = popularArticles.map(article => 
+                    createArticleCard(article)
+                ).join('');
 
-                await updateStats();
+                // Afficher tous les articles
+                displayFilteredArticles(articles);
 
             } catch (error) {
-                console.error('Erreur:', error);
+                console.error('Erreur lors du chargement des articles:', error);
+                showToast('Erreur lors du chargement des articles', 'error');
             } finally {
                 showLoading(false);
             }
+        }
+
+        // Afficher les articles filtrés
+        function displayFilteredArticles(filteredArticles) {
+            if (filteredArticles.length === 0) {
+                document.getElementById('allArticles').innerHTML = `
+                    <div class="no-results">
+                        <i class="fas fa-search"></i>
+                        <h3>Aucun article trouvé</h3>
+                        <p>Essayez avec d'autres termes de recherche</p>
+                    </div>
+                `;
+            } else {
+                document.getElementById('allArticles').innerHTML = filteredArticles.map(article => 
+                    createArticleCard(article)
+                ).join('');
+            }
+        }
+
+        // Rechercher des articles
+        function searchArticles() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const category = document.getElementById('categoryFilter').value;
+            const sortBy = document.getElementById('sortFilter').value;
+
+            let filtered = articles.filter(article => {
+                const matchesSearch = article.title.toLowerCase().includes(searchTerm) ||
+                                    article.content.toLowerCase().includes(searchTerm) ||
+                                    article.authorName.toLowerCase().includes(searchTerm);
+                
+                const matchesCategory = !category || article.category === category;
+                
+                return matchesSearch && matchesCategory;
+            });
+
+            // Trier les articles
+            filtered.sort((a, b) => {
+                switch(sortBy) {
+                    case 'popular':
+                        const aPopular = (a.views || 0) + (a.likes || 0) * 2 + (a.downloads || 0) * 3;
+                        const bPopular = (b.views || 0) + (b.likes || 0) * 2 + (b.downloads || 0) * 3;
+                        return bPopular - aPopular;
+                    case 'mostLiked':
+                        return (b.likes || 0) - (a.likes || 0);
+                    case 'mostDownloaded':
+                        return (b.downloads || 0) - (a.downloads || 0);
+                    default:
+                        return new Date(b.createdAt) - new Date(a.createdAt);
+                }
+            });
+
+            displayFilteredArticles(filtered);
         }
 
         // Créer une carte d'article
         function createArticleCard(article) {
-            const categoryIcons = {
-                education: '📚', science: '🔬', technology: '💻', literature: '📖',
-                history: '🏛️', philosophy: '🤔', mathematics: '📐', physics: '⚛️',
-                chemistry: '🧪', biology: '🧬'
+            const categoryNames = {
+                education: "Éducation",
+                science: "Science",
+                technology: "Technologie",
+                literature: "Littérature",
+                history: "Histoire",
+                philosophy: "Philosophie",
+                research: "Recherche",
+                tutorial: "Tutoriel"
             };
+
+            const typeIcons = {
+                student: "fa-user-graduate",
+                teacher: "fa-chalkboard-teacher",
+                consultant: "fa-briefcase",
+                independent: "fa-user-tie",
+                researcher: "fa-flask"
+            };
+
+            const hasFile = article.fileUrl ? true : false;
+            const fileIcon = article.fileType?.includes('pdf') ? 'fa-file-pdf' :
+                            article.fileType?.includes('doc') ? 'fa-file-word' :
+                            article.fileType?.includes('xls') ? 'fa-file-excel' : 'fa-file';
             
+            const isLiked = userLikes.has(article.id);
+
             return `
-                <div class="article-card" onclick="openArticle('${article.id}')">
-                    <div class="article-badge">${categoryIcons[article.category] || '📄'} ${article.category}</div>
-                    <div class="article-header">
+                <div class="article-card" onclick="showArticleDetail('${article.id}')">
+                    <div class="article-badge">${categoryNames[article.category] || article.category}</div>
+                    ${hasFile ? `<div class="article-file-badge"><i class="fas ${fileIcon}"></i> Fichier joint</div>` : ''}
+                    <div class="article-content">
                         <div class="article-meta">
                             <div class="article-author">
-                                <i class="fas fa-user-circle"></i>
-                                <span>${article.authorName || 'Anonyme'}</span>
+                                <i class="fas ${typeIcons[article.authorType] || 'fa-user'}"></i>
+                                <span>${article.authorName}</span>
                             </div>
                             <span>•</span>
-                            <span>${new Date(article.createdAt).toLocaleDateString()}</span>
+                            <span>${formatDate(article.createdAt)}</span>
                         </div>
                         <h3 class="article-title">${article.title}</h3>
-                    </div>
-                    <div class="article-content-preview">
-                        ${article.content.substring(0, 150)}...
+                        <p class="article-excerpt">${article.content.substring(0, 150)}...</p>
                     </div>
                     <div class="article-stats">
                         <div class="stats-group">
-                            <div class="stat-item">
-                                <i class="fas fa-eye"></i> ${article.views || 0}
+                            <div class="stat" onclick="event.stopPropagation(); toggleLike('${article.id}')">
+                                <i class="fa${isLiked ? 's' : 'r'} fa-heart" style="color: ${isLiked ? 'var(--danger-color)' : 'inherit'};"></i>
+                                <span>${article.likes || 0}</span>
                             </div>
-                            <div class="stat-item">
-                                <i class="fas fa-download"></i> ${article.downloads || 0}
+                            <div class="stat">
+                                <i class="far fa-comment"></i>
+                                <span>${article.commentsCount || 0}</span>
                             </div>
-                            <div class="stat-item">
-                                <i class="fas fa-comment"></i> ${article.commentsCount || 0}
+                            <div class="stat">
+                                <i class="fas fa-download"></i>
+                                <span>${article.downloads || 0}</span>
+                            </div>
+                            <div class="stat">
+                                <i class="fas fa-eye"></i>
+                                <span>${article.views || 0}</span>
                             </div>
                         </div>
-                        <div class="action-buttons">
-                            <button class="btn-download" onclick="downloadArticlePDF('${article.id}', event)">
-                                <i class="fas fa-file-pdf"></i>
+                        ${hasFile ? `
+                            <button class="download-btn" onclick="event.stopPropagation(); downloadArticle('${article.id}')">
+                                <i class="fas fa-download"></i>
+                                Télécharger
                             </button>
-                            <button class="btn-comments" onclick="openArticleComments('${article.id}', event)">
-                                <i class="fas fa-comments"></i>
-                            </button>
-                        </div>
+                        ` : `
+                            <a href="mailto:${article.authorContactEmail}?subject=À propos de votre article: ${article.title}" 
+                               class="contact-author-btn" onclick="event.stopPropagation()">
+                                <i class="fas fa-envelope"></i>
+                                Contacter
+                            </a>
+                        `}
                     </div>
                 </div>
             `;
         }
 
-        // Ouvrir un article
-        async function openArticle(articleId) {
-            showLoading(true, 'Chargement de l\'article...');
+        // Afficher les détails d'un article
+        async function showArticleDetail(articleId) {
+            const article = articles.find(a => a.id === articleId);
+            if (!article) return;
+
+            // Incrémenter les vues
+            await incrementViews(articleId);
+
+            const typeIcons = {
+                student: "fa-user-graduate",
+                teacher: "fa-chalkboard-teacher",
+                consultant: "fa-briefcase",
+                independent: "fa-user-tie",
+                researcher: "fa-flask"
+            };
+
+            const hasFile = article.fileUrl ? true : false;
+            const fileIcon = article.fileType?.includes('pdf') ? 'fa-file-pdf' :
+                            article.fileType?.includes('doc') ? 'fa-file-word' :
+                            article.fileType?.includes('xls') ? 'fa-file-excel' : 'fa-file';
+
+            const isLiked = userLikes.has(article.id);
+
+            document.getElementById('articleDetailTitle').textContent = article.title;
             
-            try {
-                const docRef = window.doc(window.db, 'articles', articleId);
-                const docSnap = await window.getDoc(docRef);
-                
-                if (docSnap.exists()) {
-                    currentArticle = { id: docSnap.id, ...docSnap.data() };
-                    currentArticleId = articleId;
+            document.getElementById('articleDetailBody').innerHTML = `
+                <div class="article-detail-header">
+                    <div class="article-detail-meta">
+                        <span><i class="fas ${typeIcons[article.authorType] || 'fa-user'}"></i> ${article.authorName}</span>
+                        <span><i class="far fa-calendar"></i> ${formatDate(article.createdAt)}</span>
+                        <span><i class="far fa-eye"></i> ${article.views || 0} vues</span>
+                    </div>
                     
-                    // Incrémenter les vues
-                    await window.updateDoc(docRef, {
-                        views: window.increment(1)
-                    });
+                    <div class="article-detail-actions">
+                        <button class="btn ${isLiked ? 'btn-primary' : 'btn-outline'}" onclick="toggleLike('${article.id}')">
+                            <i class="fa${isLiked ? 's' : 'r'} fa-heart"></i>
+                            ${article.likes || 0} ${article.likes > 1 ? 'likes' : 'like'}
+                        </button>
+                        
+                        ${hasFile ? `
+                            <button class="btn btn-primary" onclick="downloadArticle('${article.id}')">
+                                <i class="fas fa-download"></i>
+                                Télécharger (${article.downloads || 0} téléchargements)
+                            </button>
+                        ` : ''}
+                        
+                        <a href="mailto:${article.authorContactEmail}?subject=À propos de votre article: ${article.title}" 
+                           class="btn btn-outline">
+                            <i class="fas fa-envelope"></i>
+                            Contacter l'auteur
+                        </a>
+                    </div>
                     
-                    // Afficher le modal
-                    document.getElementById('modalArticleTitle').textContent = currentArticle.title;
-                    document.getElementById('tabContent').innerHTML = `
-                        <div class="article-full-content">
-                            <p><strong>Auteur:</strong> ${currentArticle.authorName}</p>
-                            <p><strong>Publié le:</strong> ${new Date(currentArticle.createdAt).toLocaleDateString()}</p>
-                            <p><strong>Catégorie:</strong> ${currentArticle.category}</p>
-                            <hr style="margin: 20px 0;">
-                            ${currentArticle.content.split('\n').map(p => `<p>${p}</p>`).join('')}
+                    ${hasFile ? `
+                        <div class="article-file-info">
+                            <div>
+                                <i class="fas ${fileIcon} fa-2x"></i>
+                                <span style="margin-left: 10px;">Fichier joint: ${article.fileName || 'Document'}</span>
+                            </div>
+                            <button class="btn btn-primary" onclick="downloadArticle('${article.id}')">
+                                <i class="fas fa-download"></i>
+                                Télécharger
+                            </button>
                         </div>
-                    `;
+                    ` : ''}
                     
-                    await loadComments(articleId);
-                    loadArticleStats();
+                    <div class="article-detail-content">
+                        ${article.content}
+                    </div>
+                </div>
+                
+                <!-- Comments Section -->
+                <div class="comments-section">
+                    <h3 class="comments-title">
+                        <i class="far fa-comments"></i>
+                        Commentaires (${article.commentsCount || 0})
+                    </h3>
                     
-                    showModal('articleModal');
-                }
+                    ${currentUser ? `
+                        <div class="comment-form">
+                            <textarea id="newComment" class="comment-input" placeholder="Écrivez votre commentaire..."></textarea>
+                            <button class="btn btn-primary" onclick="addComment('${article.id}')">
+                                <i class="fas fa-paper-plane"></i>
+                                Publier le commentaire
+                            </button>
+                        </div>
+                    ` : `
+                        <div style="text-align: center; padding: 20px; background: #f8f9fa; border-radius: var(--border-radius); margin-bottom: 20px;">
+                            <p><i class="fas fa-lock"></i> Connectez-vous pour commenter</p>
+                            <button class="btn btn-primary" onclick="showModal('loginModal')">Se connecter</button>
+                        </div>
+                    `}
+                    
+                    <div class="comments-list" id="commentsList-${article.id}">
+                        ${renderComments(article.comments || [])}
+                    </div>
+                </div>
+            `;
+
+            showModal('articleDetailModal');
+        }
+
+        // Rendre les commentaires
+        function renderComments(comments, parentId = null) {
+            const filteredComments = comments.filter(c => c.parentId === parentId);
+            
+            return filteredComments.map(comment => `
+                <div class="comment-card ${parentId ? 'reply' : ''}">
+                    <div class="comment-header">
+                        <div class="comment-author">
+                            <div class="avatar-small">${comment.authorName.charAt(0).toUpperCase()}</div>
+                            <span>${comment.authorName}</span>
+                        </div>
+                        <span class="comment-date">${formatDate(comment.createdAt)}</span>
+                    </div>
+                    <div class="comment-content">
+                        ${comment.content}
+                    </div>
+                    <div class="comment-actions">
+                        <span class="comment-action" onclick="showReplyForm('${comment.id}')">
+                            <i class="far fa-reply"></i> Répondre
+                        </span>
+                        ${currentUser && currentUser.uid === comment.authorId ? `
+                            <span class="comment-action" onclick="deleteComment('${comment.id}')">
+                                <i class="far fa-trash-alt"></i> Supprimer
+                            </span>
+                        ` : ''}
+                    </div>
+                    <div id="replyForm-${comment.id}" style="display: none;" class="reply-form">
+                        <textarea id="replyContent-${comment.id}" class="comment-input" placeholder="Votre réponse..." rows="3"></textarea>
+                        <button class="btn btn-primary" onclick="addReply('${comment.id}')">
+                            <i class="fas fa-paper-plane"></i>
+                            Répondre
+                        </button>
+                    </div>
+                    <div class="nested-comments">
+                        ${renderComments(comments, comment.id)}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Ajouter un commentaire
+        async function addComment(articleId) {
+            if (!currentUser) {
+                showModal('loginModal');
+                return;
+            }
+
+            const content = document.getElementById('newComment').value;
+            if (!content.trim()) {
+                showToast('Veuillez écrire un commentaire', 'error');
+                return;
+            }
+
+            showLoading(true);
+
+            try {
+                const article = articles.find(a => a.id === articleId);
+                const comment = {
+                    id: Date.now().toString(),
+                    content: content,
+                    authorId: currentUser.uid,
+                    authorName: currentUser.name,
+                    createdAt: new Date().toISOString(),
+                    parentId: null
+                };
+
+                const comments = article.comments || [];
+                comments.push(comment);
+
+                await window.firebaseFunctions.updateDoc(
+                    window.firebaseFunctions.doc(window.firebaseDb, 'articles', articleId),
+                    {
+                        comments: comments,
+                        commentsCount: (article.commentsCount || 0) + 1
+                    }
+                );
+
+                article.comments = comments;
+                article.commentsCount = (article.commentsCount || 0) + 1;
+
+                document.getElementById('newComment').value = '';
+                showArticleDetail(articleId);
+                showToast('Commentaire ajouté', 'success');
+
             } catch (error) {
-                console.error('Erreur:', error);
+                console.error('Erreur lors de l\'ajout du commentaire:', error);
+                showToast('Erreur lors de l\'ajout du commentaire', 'error');
             } finally {
                 showLoading(false);
             }
         }
 
-        // Ouvrir directement les commentaires
-        function openArticleComments(articleId, event) {
-            event.stopPropagation();
-            openArticle(articleId);
-            setTimeout(() => switchTab('comments'), 500);
+        // Afficher le formulaire de réponse
+        function showReplyForm(commentId) {
+            const form = document.getElementById(`replyForm-${commentId}`);
+            form.style.display = form.style.display === 'none' ? 'block' : 'none';
         }
 
-        // Changer d'onglet
-        function switchTab(tab) {
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-            
-            event.target.classList.add('active');
-            document.getElementById(`tab${tab.charAt(0).toUpperCase() + tab.slice(1)}`).classList.add('active');
-            
-            if (tab === 'comments') {
-                document.getElementById('commentsSection').innerHTML = createCommentsSection();
-            } else if (tab === 'stats') {
-                loadArticleStats();
-            }
-        }
-
-        // Créer la section commentaires
-        function createCommentsSection() {
-            if (!currentArticle.comments) {
-                return '<p style="text-align: center; padding: 40px;">Aucun commentaire pour le moment. Soyez le premier à commenter !</p>';
-            }
-            
-            return `
-                <div class="comment-form">
-                    <textarea class="comment-input" id="newComment" placeholder="Votre commentaire..."></textarea>
-                    <button class="btn btn-primary" onclick="addComment()">Publier</button>
-                </div>
-                <div class="comments-list">
-                    ${currentArticle.comments.map(comment => `
-                        <div class="comment">
-                            <div class="comment-header">
-                                <span class="comment-author">${comment.author}</span>
-                                <span class="comment-date">${new Date(comment.date).toLocaleString()}</span>
-                            </div>
-                            <div class="comment-content">${comment.content}</div>
-                            <div class="comment-actions">
-                                <span class="comment-like" onclick="likeComment('${comment.id}')">
-                                    <i class="fas fa-heart"></i> ${comment.likes || 0}
-                                </span>
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-            `;
-        }
-
-        // Ajouter un commentaire
-        async function addComment() {
+        // Ajouter une réponse
+        async function addReply(commentId) {
             if (!currentUser) {
                 showModal('loginModal');
                 return;
             }
-            
-            const content = document.getElementById('newComment').value;
-            if (!content) return;
-            
+
+            const content = document.getElementById(`replyContent-${commentId}`).value;
+            if (!content.trim()) {
+                showToast('Veuillez écrire une réponse', 'error');
+                return;
+            }
+
+            showLoading(true);
+
             try {
-                const docRef = window.doc(window.db, 'articles', currentArticleId);
-                const comment = {
+                const articleId = document.getElementById('articleDetailTitle').textContent;
+                const article = articles.find(a => a.title === articleId);
+                
+                const reply = {
                     id: Date.now().toString(),
-                    author: currentUser.name,
-                    authorId: currentUser.uid,
                     content: content,
-                    date: new Date().toISOString(),
-                    likes: 0
+                    authorId: currentUser.uid,
+                    authorName: currentUser.name,
+                    createdAt: new Date().toISOString(),
+                    parentId: commentId
                 };
-                
-                await window.updateDoc(docRef, {
-                    comments: window.arrayUnion(comment),
-                    commentsCount: window.increment(1)
-                });
-                
-                document.getElementById('newComment').value = '';
-                await loadComments(currentArticleId);
-                showToast('Commentaire ajouté !');
+
+                const comments = article.comments || [];
+                comments.push(reply);
+
+                await window.firebaseFunctions.updateDoc(
+                    window.firebaseFunctions.doc(window.firebaseDb, 'articles', article.id),
+                    {
+                        comments: comments,
+                        commentsCount: (article.commentsCount || 0) + 1
+                    }
+                );
+
+                article.comments = comments;
+                article.commentsCount = (article.commentsCount || 0) + 1;
+
+                document.getElementById(`replyContent-${commentId}`).value = '';
+                showArticleDetail(article.id);
+                showToast('Réponse ajoutée', 'success');
+
             } catch (error) {
-                console.error('Erreur:', error);
+                console.error('Erreur lors de l\'ajout de la réponse:', error);
+                showToast('Erreur lors de l\'ajout de la réponse', 'error');
+            } finally {
+                showLoading(false);
             }
         }
 
-        // Charger les commentaires
-        async function loadComments(articleId) {
-            const docRef = window.doc(window.db, 'articles', articleId);
-            const docSnap = await window.getDoc(docRef);
-            
-            if (docSnap.exists()) {
-                currentArticle.comments = docSnap.data().comments || [];
-                document.getElementById('commentsSection').innerHTML = createCommentsSection();
-            }
-        }
+        // Supprimer un commentaire
+        async function deleteComment(commentId) {
+            if (!confirm('Voulez-vous vraiment supprimer ce commentaire ?')) return;
 
-        // Charger les statistiques de l'article
-        function loadArticleStats() {
-            if (!currentArticle) return;
-            
-            document.getElementById('tabStats').innerHTML = `
-                <div style="padding: 20px;">
-                    <h3>Statistiques de l'article</h3>
-                    <div style="display: grid; grid-template-columns: repeat(2,1fr); gap: 15px; margin-top: 20px;">
-                        <div style="background: #f8f9fa; padding: 20px; border-radius: 15px; text-align: center;">
-                            <i class="fas fa-eye" style="font-size: 2rem; color: var(--primary);"></i>
-                            <div style="font-size: 2rem; font-weight: bold;">${currentArticle.views || 0}</div>
-                            <div>Vues</div>
-                        </div>
-                        <div style="background: #f8f9fa; padding: 20px; border-radius: 15px; text-align: center;">
-                            <i class="fas fa-download" style="font-size: 2rem; color: var(--success);"></i>
-                            <div style="font-size: 2rem; font-weight: bold;">${currentArticle.downloads || 0}</div>
-                            <div>Téléchargements</div>
-                        </div>
-                        <div style="background: #f8f9fa; padding: 20px; border-radius: 15px; text-align: center;">
-                            <i class="fas fa-comment" style="font-size: 2rem; color: var(--accent);"></i>
-                            <div style="font-size: 2rem; font-weight: bold;">${currentArticle.commentsCount || 0}</div>
-                            <div>Commentaires</div>
-                        </div>
-                        <div style="background: #f8f9fa; padding: 20px; border-radius: 15px; text-align: center;">
-                            <i class="fas fa-star" style="font-size: 2rem; color: var(--warning);"></i>
-                            <div style="font-size: 2rem; font-weight: bold;">${currentArticle.rating || 'N/A'}</div>
-                            <div>Note IA</div>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
+            showLoading(true);
 
-        // Télécharger l'article en PDF
-        async function downloadArticlePDF(articleId, event) {
-            if (event) event.stopPropagation();
-            
             try {
-                const docRef = window.doc(window.db, 'articles', articleId);
-                const docSnap = await window.getDoc(docRef);
+                const articleId = document.getElementById('articleDetailTitle').textContent;
+                const article = articles.find(a => a.title === articleId);
                 
-                if (docSnap.exists()) {
-                    const article = docSnap.data();
-                    
-                    // Créer le contenu PDF
-                    const element = document.createElement('div');
-                    element.innerHTML = `
-                        <h1 style="color: #8A2BE2;">${article.title}</h1>
-                        <p><strong>Auteur:</strong> ${article.authorName}</p>
-                        <p><strong>Date:</strong> ${new Date(article.createdAt).toLocaleDateString()}</p>
-                        <p><strong>Catégorie:</strong> ${article.category}</p>
-                        <hr>
-                        ${article.content.split('\n').map(p => `<p>${p}</p>`).join('')}
-                    `;
-                    
-                    // Options PDF
-                    const opt = {
-                        margin: 1,
-                        filename: `${article.title}.pdf`,
-                        image: { type: 'jpeg', quality: 0.98 },
-                        html2canvas: { scale: 2 },
-                        jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
-                    };
-                    
-                    // Générer PDF
-                    await html2pdf().set(opt).from(element).save();
-                    
-                    // Incrémenter les téléchargements
-                    await window.updateDoc(docRef, {
-                        downloads: window.increment(1)
-                    });
-                    
-                    showToast('PDF téléchargé !');
-                }
+                const comments = (article.comments || []).filter(c => c.id !== commentId);
+                const deletedCount = (article.comments || []).length - comments.length;
+
+                await window.firebaseFunctions.updateDoc(
+                    window.firebaseFunctions.doc(window.firebaseDb, 'articles', article.id),
+                    {
+                        comments: comments,
+                        commentsCount: (article.commentsCount || 0) - deletedCount
+                    }
+                );
+
+                article.comments = comments;
+                article.commentsCount = (article.commentsCount || 0) - deletedCount;
+
+                showArticleDetail(article.id);
+                showToast('Commentaire supprimé', 'success');
+
             } catch (error) {
-                console.error('Erreur PDF:', error);
+                console.error('Erreur lors de la suppression du commentaire:', error);
+                showToast('Erreur lors de la suppression', 'error');
+            } finally {
+                showLoading(false);
             }
         }
 
-        // Télécharger l'article actuel en PDF
-        function downloadCurrentArticlePDF() {
-            if (currentArticleId) {
-                downloadArticlePDF(currentArticleId);
+        // Incrémenter les vues
+        async function incrementViews(articleId) {
+            try {
+                const article = articles.find(a => a.id === articleId);
+                
+                await window.firebaseFunctions.updateDoc(
+                    window.firebaseFunctions.doc(window.firebaseDb, 'articles', articleId),
+                    {
+                        views: (article.views || 0) + 1
+                    }
+                );
+
+                article.views = (article.views || 0) + 1;
+            } catch (error) {
+                console.error('Erreur lors de l\'incrémentation des vues:', error);
             }
         }
 
-        // Vérification IA améliorée
-        function checkArticleWithAI() {
+        // Gérer les likes
+        async function toggleLike(articleId) {
+            if (!currentUser) {
+                showModal('loginModal');
+                return;
+            }
+
+            const article = articles.find(a => a.id === articleId);
+            const isLiked = userLikes.has(articleId);
+
+            showLoading(true);
+
+            try {
+                if (isLiked) {
+                    // Unlike
+                    await window.firebaseFunctions.updateDoc(
+                        window.firebaseFunctions.doc(window.firebaseDb, 'articles', articleId),
+                        {
+                            likes: (article.likes || 0) - 1
+                        }
+                    );
+
+                    // Supprimer le like de l'utilisateur
+                    const q = window.firebaseFunctions.query(
+                        window.firebaseFunctions.collection(window.firebaseDb, 'userLikes'),
+                        window.firebaseFunctions.where('userId', '==', currentUser.uid),
+                        window.firebaseFunctions.where('articleId', '==', articleId)
+                    );
+                    
+                    const querySnapshot = await window.firebaseFunctions.getDocs(q);
+                    if (!querySnapshot.empty) {
+                        const likeDoc = querySnapshot.docs[0];
+                        await window.firebaseFunctions.updateDoc(
+                            window.firebaseFunctions.doc(window.firebaseDb, 'userLikes', likeDoc.id),
+                            { active: false }
+                        );
+                    }
+
+                    userLikes.delete(articleId);
+                    article.likes = (article.likes || 0) - 1;
+                    showToast('Like retiré', 'info');
+
+                } else {
+                    // Like
+                    await window.firebaseFunctions.updateDoc(
+                        window.firebaseFunctions.doc(window.firebaseDb, 'articles', articleId),
+                        {
+                            likes: (article.likes || 0) + 1
+                        }
+                    );
+
+                    // Enregistrer le like de l'utilisateur
+                    await window.firebaseFunctions.addDoc(
+                        window.firebaseFunctions.collection(window.firebaseDb, 'userLikes'),
+                        {
+                            userId: currentUser.uid,
+                            articleId: articleId,
+                            active: true,
+                            createdAt: new Date().toISOString()
+                        }
+                    );
+
+                    userLikes.add(articleId);
+                    article.likes = (article.likes || 0) + 1;
+                    showToast('Article aimé !', 'success');
+                }
+
+                // Mettre à jour l'affichage
+                if (document.getElementById('articleDetailModal').classList.contains('active')) {
+                    showArticleDetail(articleId);
+                } else {
+                    loadArticles();
+                }
+
+            } catch (error) {
+                console.error('Erreur lors du like:', error);
+                showToast('Erreur lors de l\'opération', 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Télécharger un article
+        async function downloadArticle(articleId) {
+            const article = articles.find(a => a.id === articleId);
+            if (!article || !article.fileUrl) {
+                showToast('Fichier non disponible', 'error');
+                return;
+            }
+
+            showLoading(true);
+
+            try {
+                // Incrémenter le compteur de téléchargements
+                await window.firebaseFunctions.updateDoc(
+                    window.firebaseFunctions.doc(window.firebaseDb, 'articles', articleId),
+                    {
+                        downloads: (article.downloads || 0) + 1
+                    }
+                );
+
+                article.downloads = (article.downloads || 0) + 1;
+
+                // Télécharger le fichier
+                window.open(article.fileUrl, '_blank');
+                
+                showToast('Téléchargement démarré', 'success');
+
+            } catch (error) {
+                console.error('Erreur lors du téléchargement:', error);
+                showToast('Erreur lors du téléchargement', 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Vérifier un article avec l'IA (version améliorée)
+        async function checkArticleWithAI() {
+            if (!currentUser) {
+                showModal('loginModal');
+                return;
+            }
+
             const title = document.getElementById('articleTitle').value;
             const content = document.getElementById('articleContent').value;
 
             if (!title || !content) {
-                alert('Veuillez remplir le titre et le contenu');
+                showToast('Veuillez remplir le titre et le contenu', 'error');
                 return;
             }
 
-            showLoading(true, 'Analyse IA approfondie en cours...');
+            showLoading(true);
 
+            // Simulation avancée d'analyse IA
             setTimeout(() => {
-                // Analyse avancée
                 const words = content.split(/\s+/).length;
-                const sentences = content.split(/[.!?]+/).length - 1;
-                const avgWordLength = content.replace(/\s+/g, '').length / words;
+                const sentences = content.split(/[.!?]+/).filter(s => s.trim().length > 0).length;
+                const paragraphs = content.split(/\n\s*\n/).filter(p => p.trim().length > 0).length;
+                
+                // Calcul du score de qualité
+                let qualityScore = 0;
                 const spellingErrors = Math.floor(Math.random() * 5);
                 const grammarErrors = Math.floor(Math.random() * 3);
-                const readabilityScore = Math.floor(Math.random() * 30 + 70);
-                const originalityScore = Math.floor(Math.random() * 20 + 80);
-                const academicScore = Math.floor(Math.random() * 25 + 75);
                 
-                const overallScore = Math.floor((readabilityScore + originalityScore + academicScore) / 3);
+                // Score basé sur la longueur
+                if (words < 100) qualityScore += 10;
+                else if (words < 300) qualityScore += 30;
+                else if (words < 500) qualityScore += 50;
+                else if (words < 1000) qualityScore += 70;
+                else qualityScore += 85;
                 
-                document.getElementById('aiScore').innerHTML = `
-                    Score global: ${overallScore}% <br>
-                    <small style="font-size: 1rem;">Article de qualité ${overallScore > 90 ? 'Exceptionnelle' : overallScore > 80 ? 'Excellente' : 'Bonne'}</small>
+                // Score basé sur la structure
+                if (sentences > 5) qualityScore += 10;
+                if (paragraphs > 2) qualityScore += 10;
+                
+                // Pénalités pour les erreurs
+                qualityScore -= spellingErrors * 5;
+                qualityScore -= grammarErrors * 5;
+                
+                qualityScore = Math.max(0, Math.min(100, qualityScore));
+                
+                // Vérification du plagiat (simulation)
+                const plagiarismScore = Math.random() * 30;
+                const isOriginal = plagiarismScore < 20;
+                
+                // Analyse du contenu académique
+                const academicKeywords = ['recherche', 'étude', 'analyse', 'résultats', 'conclusion', 'méthodologie', 'hypothèse', 'théorie', 'données'];
+                const foundKeywords = academicKeywords.filter(keyword => 
+                    content.toLowerCase().includes(keyword.toLowerCase())
+                ).length;
+                
+                const academicScore = Math.min(100, (foundKeywords / academicKeywords.length) * 100);
+                
+                // Suggestions d'amélioration
+                const suggestions = [];
+                if (words < 300) suggestions.push("L'article est un peu court. Enrichissez-le avec plus de détails.");
+                if (sentences < 5) suggestions.push("Structurez votre article en plus de phrases pour une meilleure lisibilité.");
+                if (paragraphs < 2) suggestions.push("Utilisez des paragraphes pour organiser vos idées.");
+                if (academicScore < 50) suggestions.push("Ajoutez plus de terminologie académique spécifique à votre domaine.");
+                if (plagiarismScore > 15) suggestions.push("Certaines parties pourraient être trop similaires à d'autres sources. Reformulez si nécessaire.");
+                
+                const aiMessage = `
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <div class="ai-score" style="margin: 0 auto;">${qualityScore}</div>
+                        <h3 style="color: white;">Score de qualité: ${qualityScore}/100</h3>
+                    </div>
+                    
+                    <div class="ai-details">
+                        <div class="ai-detail-item">
+                            <i class="fas fa-file-alt"></i>
+                            <h4>Statistiques</h4>
+                            <p>${words} mots</p>
+                            <p>${sentences} phrases</p>
+                            <p>${paragraphs} paragraphes</p>
+                        </div>
+                        
+                        <div class="ai-detail-item">
+                            <i class="fas fa-spell-check"></i>
+                            <h4>Corrections</h4>
+                            <p><i class="fas fa-check-circle" style="color: #4bb543;"></i> ${spellingErrors} fautes d'orthographe</p>
+                            <p><i class="fas fa-check-circle" style="color: #4bb543;"></i> ${grammarErrors} erreurs grammaticales</p>
+                        </div>
+                        
+                        <div class="ai-detail-item">
+                            <i class="fas fa-graduation-cap"></i>
+                            <h4>Niveau académique</h4>
+                            <p>Score: ${Math.round(academicScore)}/100</p>
+                            <p>Mots-clés académiques: ${foundKeywords}/${academicKeywords.length}</p>
+                        </div>
+                        
+                        <div class="ai-detail-item">
+                            <i class="fas fa-copyright"></i>
+                            <h4>Originalité</h4>
+                            <p><i class="fa${isOriginal ? 's' : 'r'} fa-check-circle" style="color: ${isOriginal ? '#4bb543' : '#f0ad4e'};"></i> 
+                               ${isOriginal ? 'Contenu original' : 'Similarité détectée'}</p>
+                            <p>Taux de similarité: ${Math.round(plagiarismScore)}%</p>
+                        </div>
+                    </div>
+                    
+                    ${suggestions.length > 0 ? `
+                        <div class="plagiarism-check">
+                            <i class="fas fa-lightbulb"></i>
+                            <strong>Suggestions d'amélioration:</strong>
+                            <ul style="margin-top: 10px; list-style: none;">
+                                ${suggestions.map(s => `<li><i class="fas fa-arrow-right"></i> ${s}</li>`).join('')}
+                            </ul>
+                        </div>
+                    ` : ''}
+                    
+                    <div style="text-align: center; margin-top: 20px;">
+                        <i class="fas fa-check-circle" style="color: ${qualityScore >= 70 ? '#4bb543' : '#f0ad4e'}; font-size: 2rem;"></i>
+                        <p style="color: white; margin-top: 10px;">
+                            ${qualityScore >= 70 ? '✅ Article vérifié et approuvé par l\'IA' : '⚠️ Quelques améliorations sont recommandées avant publication'}
+                        </p>
+                    </div>
                 `;
-                
-                document.getElementById('aiDetails').innerHTML = `
-                    <div class="ai-detail-item">
-                        <div style="font-size: 1.5rem;">${words}</div>
-                        <div>Mots</div>
-                    </div>
-                    <div class="ai-detail-item">
-                        <div style="font-size: 1.5rem;">${sentences}</div>
-                        <div>Phrases</div>
-                    </div>
-                    <div class="ai-detail-item">
-                        <div style="font-size: 1.5rem;">${readabilityScore}%</div>
-                        <div>Lisibilité</div>
-                    </div>
-                    <div class="ai-detail-item">
-                        <div style="font-size: 1.5rem;">${originalityScore}%</div>
-                        <div>Originalité</div>
-                    </div>
-                    <div class="ai-detail-item">
-                        <div style="font-size: 1.5rem;">${academicScore}%</div>
-                        <div>Niveau académique</div>
-                    </div>
-                    <div class="ai-detail-item">
-                        <div style="font-size: 1.5rem;">${spellingErrors + grammarErrors}</div>
-                        <div>Erreurs corrigées</div>
-                    </div>
-                `;
-                
+
+                document.getElementById('aiCheckText').innerHTML = aiMessage;
                 document.getElementById('aiCheckResult').style.display = 'block';
-                document.getElementById('publishBtn').style.display = 'block';
+                
+                // Afficher le bouton de publication seulement si le score est bon
+                document.getElementById('publishBtn').style.display = qualityScore >= 70 ? 'block' : 'none';
+                
+                if (qualityScore < 70) {
+                    showToast('Améliorez la qualité de l\'article selon les suggestions de l\'IA', 'warning');
+                } else {
+                    showToast('Analyse IA terminée avec succès', 'success');
+                }
                 
                 showLoading(false);
-                showToast('Analyse IA terminée !');
-            }, 2000);
+            }, 3000);
         }
 
         // Publier un article
         async function publishArticle() {
+            if (!currentUser) {
+                showModal('loginModal');
+                return;
+            }
+
             const title = document.getElementById('articleTitle').value;
             const content = document.getElementById('articleContent').value;
             const category = document.getElementById('articleCategory').value;
 
+            if (!title || !content) {
+                showToast('Veuillez remplir le titre et le contenu', 'error');
+                return;
+            }
+
+            showLoading(true);
+
             try {
-                showLoading(true, 'Publication en cours...');
-                
-                await window.addDoc(window.collection(window.db, 'articles'), {
+                let fileUrl = null;
+                let fileName = null;
+                let fileType = null;
+
+                // Upload du fichier si sélectionné
+                if (selectedFile) {
+                    const storageRef = window.firebaseFunctions.ref(
+                        window.firebaseStorage, 
+                        `articles/${Date.now()}_${selectedFile.name}`
+                    );
+                    
+                    const snapshot = await window.firebaseFunctions.uploadBytes(storageRef, selectedFile);
+                    fileUrl = await window.firebaseFunctions.getDownloadURL(snapshot.ref);
+                    fileName = selectedFile.name;
+                    fileType = selectedFile.type;
+                }
+
+                const articleData = {
                     title: title,
                     content: content,
                     category: category,
                     authorId: currentUser.uid,
                     authorName: currentUser.name,
+                    authorType: currentUser.userType,
                     authorContactEmail: currentUser.contactEmail,
                     downloads: 0,
                     views: 0,
-                    comments: [],
+                    likes: 0,
                     commentsCount: 0,
-                    rating: Math.floor(Math.random() * 20 + 80),
+                    verifiedByAI: true,
                     createdAt: new Date().toISOString(),
-                    verifiedByAI: true
-                });
+                    updatedAt: new Date().toISOString(),
+                    comments: []
+                };
 
+                // Ajouter les informations de fichier si présentes
+                if (fileUrl) {
+                    articleData.fileUrl = fileUrl;
+                    articleData.fileName = fileName;
+                    articleData.fileType = fileType;
+                }
+
+                await window.firebaseFunctions.addDoc(
+                    window.firebaseFunctions.collection(window.firebaseDb, 'articles'),
+                    articleData
+                );
+
+                // Mettre à jour le compteur d'articles de l'utilisateur
+                const userQuery = window.firebaseFunctions.query(
+                    window.firebaseFunctions.collection(window.firebaseDb, 'users'),
+                    window.firebaseFunctions.where('uid', '==', currentUser.uid)
+                );
+                
+                const userSnapshot = await window.firebaseFunctions.getDocs(userQuery);
+                if (!userSnapshot.empty) {
+                    const userDoc = userSnapshot.docs[0];
+                    await window.firebaseFunctions.updateDoc(
+                        window.firebaseFunctions.doc(window.firebaseDb, 'users', userDoc.id),
+                        {
+                            articlesCount: window.firebaseFunctions.increment(1),
+                            reputation: window.firebaseFunctions.increment(50)
+                        }
+                    );
+                }
+
+                // Réinitialiser le formulaire
                 document.getElementById('articleTitle').value = '';
                 document.getElementById('articleContent').value = '';
+                document.getElementById('fileName').textContent = '';
+                document.getElementById('fileUploadArea').style.borderColor = '#e9ecef';
                 document.getElementById('aiCheckResult').style.display = 'none';
                 document.getElementById('publishBtn').style.display = 'none';
+                selectedFile = null;
 
-                showToast('Article publié avec succès !');
+                // Recharger les articles
+                await loadArticles();
+
+                // Retourner à la page des articles
                 showPage('articles');
-                loadArticles();
+                
+                showToast('Article publié avec succès !', 'success');
 
             } catch (error) {
-                console.error('Erreur:', error);
-                alert('Erreur: ' + error.message);
+                console.error('Erreur lors de la publication:', error);
+                showToast('Erreur lors de la publication', 'error');
             } finally {
                 showLoading(false);
             }
@@ -1794,53 +2643,243 @@
 
         // Charger le profil
         async function loadProfile() {
+            if (!currentUser) return;
+
             try {
-                const q = window.query(window.collection(window.db, 'articles'), window.where('authorId', '==', currentUser.uid));
-                const querySnapshot = await window.getDocs(q);
+                const userQuery = window.firebaseFunctions.query(
+                    window.firebaseFunctions.collection(window.firebaseDb, 'articles'),
+                    window.firebaseFunctions.where('authorId', '==', currentUser.uid)
+                );
                 
-                let articles = [];
+                const querySnapshot = await window.firebaseFunctions.getDocs(userQuery);
+                const userArticles = [];
+                
                 querySnapshot.forEach(doc => {
-                    articles.push({ id: doc.id, ...doc.data() });
+                    userArticles.push({ id: doc.id, ...doc.data() });
                 });
 
-                const totalDownloads = articles.reduce((sum, a) => sum + (a.downloads||0), 0);
-                const totalViews = articles.reduce((sum, a) => sum + (a.views||0), 0);
+                const totalDownloads = userArticles.reduce((sum, article) => sum + (article.downloads || 0), 0);
+                const totalViews = userArticles.reduce((sum, article) => sum + (article.views || 0), 0);
+                const totalLikes = userArticles.reduce((sum, article) => sum + (article.likes || 0), 0);
+                const totalComments = userArticles.reduce((sum, article) => sum + (article.commentsCount || 0), 0);
 
                 document.getElementById('profileContent').innerHTML = `
-                    <div style="text-align: center; margin-bottom: 30px;">
-                        <div class="avatar" style="width: 100px; height: 100px; font-size: 2.5rem; margin: 0 auto 15px; background: var(--gradient);">
-                            ${currentUser.name.charAt(0).toUpperCase()}
+                    <div style="display: grid; gap: 30px;">
+                        <div style="background: white; padding: 30px; border-radius: var(--border-radius); box-shadow: var(--shadow);">
+                            <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 30px; flex-wrap: wrap;">
+                                <div class="avatar" style="width: 80px; height: 80px; font-size: 2rem;">
+                                    ${currentUser.name.charAt(0).toUpperCase()}
+                                </div>
+                                <div style="flex: 1;">
+                                    <h2>${currentUser.name}</h2>
+                                    <p><i class="fas fa-${getUserTypeIcon(currentUser.userType)}"></i> ${getUserTypeLabel(currentUser.userType)}</p>
+                                    <p><i class="fas fa-envelope"></i> ${currentUser.email}</p>
+                                    <p><i class="fas fa-envelope-open"></i> Email public: ${currentUser.contactEmail}</p>
+                                </div>
+                                <div style="text-align: center;">
+                                    <div style="font-size: 2rem; font-weight: bold; color: var(--primary-color);">${currentUser.reputation || 0}</div>
+                                    <div>Réputation</div>
+                                </div>
+                            </div>
+                            
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px;">
+                                <div style="text-align: center; padding: 20px; background: #f8f9fa; border-radius: var(--border-radius);">
+                                    <div style="font-size: 2rem; font-weight: bold; color: var(--primary-color);">${currentUser.articlesCount || 0}</div>
+                                    <div>Articles</div>
+                                </div>
+                                <div style="text-align: center; padding: 20px; background: #f8f9fa; border-radius: var(--border-radius);">
+                                    <div style="font-size: 2rem; font-weight: bold; color: var(--primary-color);">${totalDownloads}</div>
+                                    <div>Téléchargements</div>
+                                </div>
+                                <div style="text-align: center; padding: 20px; background: #f8f9fa; border-radius: var(--border-radius);">
+                                    <div style="font-size: 2rem; font-weight: bold; color: var(--primary-color);">${totalViews}</div>
+                                    <div>Vues</div>
+                                </div>
+                                <div style="text-align: center; padding: 20px; background: #f8f9fa; border-radius: var(--border-radius);">
+                                    <div style="font-size: 2rem; font-weight: bold; color: var(--primary-color);">${totalLikes}</div>
+                                    <div>Likes reçus</div>
+                                </div>
+                                <div style="text-align: center; padding: 20px; background: #f8f9fa; border-radius: var(--border-radius);">
+                                    <div style="font-size: 2rem; font-weight: bold; color: var(--primary-color);">${totalComments}</div>
+                                    <div>Commentaires</div>
+                                </div>
+                            </div>
                         </div>
-                        <h2>${currentUser.name}</h2>
-                        <p style="color: #666;">${currentUser.userType}</p>
-                        <p><i class="fas fa-envelope"></i> ${currentUser.contactEmail}</p>
-                    </div>
-                    
-                    <div style="display: grid; grid-template-columns: repeat(3,1fr); gap: 15px; margin-bottom: 30px;">
-                        <div style="text-align: center; padding: 20px; background: #f8f9fa; border-radius: 15px;">
-                            <div style="font-size: 2rem; font-weight: bold;">${articles.length}</div>
-                            <div>Articles</div>
+                        
+                        <div style="background: white; padding: 30px; border-radius: var(--border-radius); box-shadow: var(--shadow);">
+                            <h3 style="margin-bottom: 20px;">Mes articles (${userArticles.length})</h3>
+                            ${userArticles.length > 0 ? 
+                                `<div class="articles-grid">
+                                    ${userArticles.map(article => createArticleCard(article)).join('')}
+                                </div>` :
+                                `<p style="text-align: center; color: #6c757d; padding: 40px;">
+                                    <i class="fas fa-file-alt" style="font-size: 3rem; margin-bottom: 20px; display: block;"></i>
+                                    Vous n'avez pas encore publié d'article.<br>
+                                    <button class="btn btn-primary" onclick="showPage('publish')" style="margin-top: 20px;">
+                                        Publier mon premier article
+                                    </button>
+                                </p>`
+                            }
                         </div>
-                        <div style="text-align: center; padding: 20px; background: #f8f9fa; border-radius: 15px;">
-                            <div style="font-size: 2rem; font-weight: bold;">${totalDownloads}</div>
-                            <div>Téléchargements</div>
-                        </div>
-                        <div style="text-align: center; padding: 20px; background: #f8f9fa; border-radius: 15px;">
-                            <div style="font-size: 2rem; font-weight: bold;">${totalViews}</div>
-                            <div>Vues</div>
-                        </div>
-                    </div>
-                    
-                    <h3>Mes articles</h3>
-                    <div class="articles-grid">
-                        ${articles.map(a => createArticleCard(a)).join('')}
                     </div>
                 `;
 
             } catch (error) {
-                console.error('Erreur profil:', error);
+                console.error('Erreur lors du chargement du profil:', error);
             }
         }
+
+        // Fonctions utilitaires
+        function validateEmail(email) {
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return re.test(email);
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('fr-FR', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric'
+            });
+        }
+
+        function getUserTypeLabel(type) {
+            const labels = {
+                student: "Élève/Étudiant",
+                teacher: "Professeur",
+                consultant: "Consultant",
+                independent: "Indépendant",
+                researcher: "Chercheur"
+            };
+            return labels[type] || type;
+        }
+
+        function getUserTypeIcon(type) {
+            const icons = {
+                student: "user-graduate",
+                teacher: "chalkboard-teacher",
+                consultant: "briefcase",
+                independent: "user-tie",
+                researcher: "flask"
+            };
+            return icons[type] || "user";
+        }
+
+        function getFirebaseErrorMessage(errorCode) {
+            const messages = {
+                'auth/email-already-in-use': 'Cette adresse email est déjà utilisée.',
+                'auth/invalid-email': 'Adresse email invalide.',
+                'auth/operation-not-allowed': 'Opération non autorisée.',
+                'auth/weak-password': 'Le mot de passe est trop faible.',
+                'auth/user-disabled': 'Ce compte a été désactivé.',
+                'auth/user-not-found': 'Aucun compte trouvé avec cette adresse email.',
+                'auth/wrong-password': 'Mot de passe incorrect.',
+                'auth/too-many-requests': 'Trop de tentatives. Réessayez plus tard.'
+            };
+            return messages[errorCode] || 'Une erreur est survenue.';
+        }
+
+        function showLoading(show) {
+            document.getElementById('loading').classList.toggle('active', show);
+        }
+
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast toast-${type}`;
+            
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Gérer la touche Échap pour fermer les modals
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                document.querySelectorAll('.modal.active').forEach(modal => {
+                    modal.classList.remove('active');
+                });
+            }
+        });
+
+        // Fermer les modals en cliquant à l'extérieur
+        document.addEventListener('click', function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.classList.remove('active');
+            }
+        });
+
+        // Drag and drop pour les fichiers
+        const fileUploadArea = document.getElementById('fileUploadArea');
+        if (fileUploadArea) {
+            fileUploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                fileUploadArea.style.borderColor = 'var(--primary-color)';
+                fileUploadArea.style.background = 'rgba(67, 97, 238, 0.05)';
+            });
+
+            fileUploadArea.addEventListener('dragleave', (e) => {
+                e.preventDefault();
+                fileUploadArea.style.borderColor = '#e9ecef';
+                fileUploadArea.style.background = 'transparent';
+            });
+
+            fileUploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                fileUploadArea.style.borderColor = '#e9ecef';
+                fileUploadArea.style.background = 'transparent';
+                
+                const file = e.dataTransfer.files[0];
+                if (file) {
+                    document.getElementById('fileInput').files = e.dataTransfer.files;
+                    handleFileSelect({ target: { files: [file] } });
+                }
+            });
+        }
+
+        // Licence Modal
+        const licenseModal = document.createElement('div');
+        licenseModal.id = 'licenseModal';
+        licenseModal.className = 'modal';
+        licenseModal.innerHTML = `
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title">Licence d'utilisation</h2>
+                    <button class="modal-close" onclick="closeModal('licenseModal')">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <h3>1. Propriété intellectuelle</h3>
+                    <p>Speech est une plateforme développée par Xtronics Concepts. Tous les droits sont réservés.</p>
+                    
+                    <h3>2. Droits d'auteur</h3>
+                    <p>Les articles publiés sur Speech restent la propriété intellectuelle de leurs auteurs. 
+                    La plateforme agit uniquement comme hébergeur.</p>
+                    
+                    <h3>3. Licence utilisateur</h3>
+                    <p>En utilisant Speech, vous acceptez de :</p>
+                    <ul>
+                        <li>Ne pas publier de contenu illégal ou protégé par des droits d'auteur</li>
+                        <li>Respecter les autres utilisateurs</li>
+                        <li>Ne pas utiliser la plateforme à des fins commerciales sans autorisation</li>
+                    </ul>
+                    
+                    <h3>4. Responsabilité</h3>
+                    <p>Xtronics Concepts décline toute responsabilité concernant le contenu publié par les utilisateurs.</p>
+                    
+                    <h3>5. Contact</h3>
+                    <p>Pour toute question concernant cette licence : xtronicsconcepts@gmail.com</p>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(licenseModal);
+
+        // Fonction pour afficher le modal de licence
+        window.showLicenseModal = function() {
+            showModal('licenseModal');
+        };
     </script>
 </body>
 </html>
