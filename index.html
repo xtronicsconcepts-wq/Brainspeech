@@ -3216,16 +3216,82 @@
                 showToast('Article non trouvé', 'error');
                 return;
             }
-            // Utiliser l'adresse professionnelle (contactEmail) de l'auteur
-            const email = article.authorContactEmail || article.authorEmail || '';
+
+            // Adresse professionnelle prioritaire
+            const email = (article.authorContactEmail || article.authorEmail || '').trim();
             if (!email) {
                 showToast('Adresse de contact de l\'auteur non disponible', 'error');
                 return;
             }
-            const subject = encodeURIComponent(`À propos de votre article : ${article.title}`);
-            const body = encodeURIComponent(`Bonjour ${article.authorName},\n\nJe vous contacte au sujet de votre article "${article.title}" publié sur Speech.\n\n`);
-            window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
-            showToast('Ouverture du client email...', 'info');
+
+            // Afficher la modal avec les options (Gmail + mailto + copier)
+            showContactModal(article.authorName, email, article.title);
+        }
+
+        // Modal pour contacter l'auteur
+        function showContactModal(authorName, email, title) {
+            const existing = document.getElementById('contactEmailModal');
+            if (existing) existing.remove();
+
+            const subject = encodeURIComponent(`À propos de votre article : ${title}`);
+            const body = encodeURIComponent(`Bonjour ${authorName},\n\nJe vous contacte au sujet de votre article "${title}" publié sur Speech.\n\n`);
+
+            // Lien Gmail web (le plus fiable)
+            const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(email)}&su=${subject}&body=${body}`;
+            // Lien mailto classique
+            const mailtoUrl = `mailto:${email}?subject=${subject}&body=${body}`;
+
+            const modal = document.createElement('div');
+            modal.id = 'contactEmailModal';
+            modal.className = 'modal active';
+            modal.innerHTML = `
+                <div class="modal-content" style="max-width: 420px;">
+                    <div class="modal-header">
+                        <h2 class="modal-title">Contacter l'auteur</h2>
+                        <button class="modal-close" onclick="document.getElementById('contactEmailModal').remove()">&times;</button>
+                    </div>
+                    <div class="modal-body" style="text-align: center;">
+                        <p style="margin-bottom: 8px; color: #6c757d;">Auteur</p>
+                        <p style="font-size: 1.2rem; font-weight: 600; margin-bottom: 20px;">${authorName}</p>
+                        
+                        <p style="margin-bottom: 8px; color: #6c757d;">Adresse professionnelle</p>
+                        <p style="font-size: 1.1rem; font-weight: 600; color: var(--primary-color); word-break: break-all; margin-bottom: 25px;">
+                            ${email}
+                        </p>
+                        
+                        <button class="btn btn-primary" style="width: 100%; margin-bottom: 10px;" onclick="window.open('${gmailUrl}', '_blank')">
+                            <i class="fab fa-google"></i> Ouvrir dans Gmail
+                        </button>
+                        
+                        <button class="btn btn-outline" style="width: 100%; margin-bottom: 10px;" onclick="window.location.href='${mailtoUrl}'">
+                            <i class="fas fa-envelope"></i> Ouvrir mon client mail
+                        </button>
+                        
+                        <button class="btn btn-outline" style="width: 100%;" onclick="copyContactEmail('${email}')">
+                            <i class="fas fa-copy"></i> Copier l'email
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) modal.remove();
+            });
+        }
+
+        function copyContactEmail(email) {
+            navigator.clipboard.writeText(email).then(() => {
+                showToast('Email copié dans le presse-papier !', 'success');
+            }).catch(() => {
+                const input = document.createElement('input');
+                input.value = email;
+                document.body.appendChild(input);
+                input.select();
+                document.execCommand('copy');
+                document.body.removeChild(input);
+                showToast('Email copié !', 'success');
+            });
         }
 
         // Télécharger un article
