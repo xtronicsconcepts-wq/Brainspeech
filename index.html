@@ -553,6 +553,9 @@
             display: inline-flex;
             align-items: center;
             gap: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
         }
 
         .contact-author-btn:hover {
@@ -2751,11 +2754,10 @@
                                 Télécharger
                             </button>
                         ` : `
-                            <a href="mailto:${article.authorContactEmail}?subject=À propos de votre article: ${encodeURIComponent(article.title)}" 
-                               class="contact-author-btn" onclick="event.stopPropagation()">
+                            <button class="contact-author-btn" onclick="event.stopPropagation(); contactAuthorById('${article.id}')">
                                 <i class="fas fa-envelope"></i>
                                 Contacter
-                            </a>
+                            </button>
                         `}
                     </div>
                 </div>
@@ -2819,11 +2821,10 @@
                             </button>
                         ` : ''}
                         
-                        <a href="mailto:${article.authorContactEmail}?subject=À propos de votre article: ${encodeURIComponent(article.title)}" 
-                           class="btn btn-outline">
+                        <button class="btn btn-outline" onclick="contactAuthorById('${article.id}')">
                             <i class="fas fa-envelope"></i>
                             Contacter l'auteur
-                        </a>
+                        </button>
                     </div>
                     
                     ${hasFile ? `
@@ -3105,22 +3106,27 @@
             }
         }
 
-        // Incrémenter les vues
+        // Incrémenter les vues (silencieux en cas de permission-denied)
         async function incrementViews(articleId) {
+            const article = articles.find(a => a.id === articleId);
+            if (!article) return;
+
+            // Mise à jour optimiste locale pour l'UI
+            article.views = (article.views || 0) + 1;
+
             try {
-                const article = articles.find(a => a.id === articleId);
-                if (!article) return;
-                
                 await window.firebaseFunctions.updateDoc(
                     window.firebaseFunctions.doc(window.firebaseDb, 'articles', articleId),
                     {
-                        views: (article.views || 0) + 1
+                        views: article.views
                     }
                 );
-
-                article.views = (article.views || 0) + 1;
             } catch (error) {
-                console.error('Erreur lors de l\'incrémentation des vues:', error);
+                // On ignore l'erreur de permissions (règles Firestore trop restrictives)
+                // Les vues restent visibles localement pour cette session
+                if (error.code !== 'permission-denied') {
+                    console.warn('Impossible d\'incrémenter les vues:', error.message);
+                }
             }
         }
 
@@ -3203,6 +3209,25 @@
             }
         }
 
+        // Contacter l'auteur via son adresse professionnelle (contactEmail)
+        function contactAuthorById(articleId) {
+            const article = articles.find(a => a.id === articleId);
+            if (!article) {
+                showToast('Article non trouvé', 'error');
+                return;
+            }
+            // Utiliser l'adresse professionnelle (contactEmail) de l'auteur
+            const email = article.authorContactEmail || article.authorEmail || '';
+            if (!email) {
+                showToast('Adresse de contact de l\'auteur non disponible', 'error');
+                return;
+            }
+            const subject = encodeURIComponent(`À propos de votre article : ${article.title}`);
+            const body = encodeURIComponent(`Bonjour ${article.authorName},\n\nJe vous contacte au sujet de votre article "${article.title}" publié sur Speech.\n\n`);
+            window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
+            showToast('Ouverture du client email...', 'info');
+        }
+
         // Télécharger un article
         async function downloadArticle(articleId) {
             const article = articles.find(a => a.id === articleId);
@@ -3214,24 +3239,48 @@
             showLoading(true);
 
             try {
-                // Incrémenter le compteur de téléchargements
-                await window.firebaseFunctions.updateDoc(
-                    window.firebaseFunctions.doc(window.firebaseDb, 'articles', articleId),
-                    {
-                        downloads: (article.downloads || 0) + 1
-                    }
-                );
+                // Incrémenter le compteur de téléchargements (ne bloque pas le téléchargement en cas d'erreur)
+                try {
+                    await window.firebaseFunctions.updateDoc(
+                        window.firebaseFunctions.doc(window.firebaseDb, 'articles', articleId),
+                        {
+                            downloads: (article.downloads || 0) + 1
+                        }
+                    );
+                    article.downloads = (article.downloads || 0) + 1;
+                } catch (updateError) {
+                    console.warn('Impossible de mettre à jour le compteur de téléchargements:', updateError);
+                }
 
-                article.downloads = (article.downloads || 0) + 1;
+                // Forcer le téléchargement de manière plus fiable
+                const link = document.createElement('a');
+                link.href = article.fileUrl;
+                link.download = article.fileName || 'document';
+                link.target = '_blank';
+                link.rel = 'noopener noreferrer';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
 
-                // Ouvrir l'URL du fichier dans un nouvel onglet pour téléchargement
-                window.open(article.fileUrl, '_blank');
+                // Fallback : ouvrir dans un nouvel onglet
+                setTimeout(() => {
+                    window.open(article.fileUrl, '_blank');
+                }, 300);
                 
                 showToast('Téléchargement démarré', 'success');
 
+                // Rafraîchir l'affichage pour mettre à jour le compteur
+                if (document.getElementById('articleDetailModal').classList.contains('active') && currentArticleId === articleId) {
+                    showArticleDetail(articleId);
+                } else {
+                    searchArticles();
+                }
+
             } catch (error) {
                 console.error('Erreur lors du téléchargement:', error);
-                showToast('Erreur lors du téléchargement', 'error');
+                // En cas d'erreur, on essaie quand même d'ouvrir le fichier
+                window.open(article.fileUrl, '_blank');
+                showToast('Ouverture du fichier...', 'info');
             } finally {
                 showLoading(false);
             }
