@@ -3238,8 +3238,6 @@
 
             // Lien Gmail web (le plus fiable)
             const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(email)}&su=${subject}&body=${body}`;
-            // Lien mailto classique
-            const mailtoUrl = `mailto:${email}?subject=${subject}&body=${body}`;
 
             const modal = document.createElement('div');
             modal.id = 'contactEmailModal';
@@ -3261,10 +3259,6 @@
                         
                         <button class="btn btn-primary" style="width: 100%; margin-bottom: 10px;" onclick="window.open('${gmailUrl}', '_blank')">
                             <i class="fab fa-google"></i> Ouvrir dans Gmail
-                        </button>
-                        
-                        <button class="btn btn-outline" style="width: 100%; margin-bottom: 10px;" onclick="window.location.href='${mailtoUrl}'">
-                            <i class="fas fa-envelope"></i> Ouvrir mon client mail
                         </button>
                         
                         <button class="btn btn-outline" style="width: 100%;" onclick="copyContactEmail('${email}')">
